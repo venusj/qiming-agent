@@ -82,17 +82,19 @@ export function ProviderForm({
   /**
    * 测试连接。
    * - 新增态：先静默保存拿到 id，再测。
+   *   注意：不能依赖 setSavedId 后的 state 刷新（React state 异步，闭包内仍为旧值），
+   *   必须直接接住 save 返回值的 id。
    * - 编辑态：直接用 initial.id 测（若已静默保存过则用 savedId）。
    */
   const runTest = async () => {
-    const id = savedId ?? initial?.id;
+    let id = savedId ?? initial?.id;
     if (!id) {
-      await save({ silent: true });
+      const saved = await save({ silent: true });
+      id = saved.id;
     }
-    const targetId = savedId ?? initial?.id ?? '';
     setTesting(true);
     try {
-      setTest(await api.provider.test(targetId));
+      setTest(await api.provider.test(id));
     } finally {
       setTesting(false);
     }
