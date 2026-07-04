@@ -28,7 +28,27 @@
 | LLM 抽象 | Vercel AI SDK | 已抽象多厂商，开发最快 |
 | 数据存储 | 纯本地（keytar + SQLite） | 安全、无后端依赖 |
 | Agent 能力 | 本地代码执行型（全能力） | 类 Codex |
+| 设计语言 | **古风（中国传统）GUI 设计系统** | 用户指定；依赖本地 `gufeng-*` 4 个 skill |
 | 文档语言 | 中文（代码与变量名仍用英文） | 用户偏好 |
+
+### 1.2.1 设计语言：古风设计系统（4 skill 联动）
+
+本项目 UI 采用本地 `C:\Users\Administrator\.agents\skills\` 下的古风设计体系，**4 个 skill 在 P0 全部接入**：
+
+| Skill | 路径 | P0 用途 |
+|---|---|---|
+| `gufeng-design-tokens` | `.../gufeng-design-tokens/SKILL.md` | 色彩/字体/间距/圆角/阴影/纹理令牌，作为 Tailwind 主题源 |
+| `gufeng-component-builder` | `.../gufeng-component-builder/SKILL.md` | 14 种古风组件（窗口框/标题栏/侧边导航/按钮/输入框/滚动条/卡片/弹窗/树形/分页等），覆盖聊天页+设置页全部 UI |
+| `gufeng-motion-engine` | `.../gufeng-motion-engine/SKILL.md` | 毛笔回弹/卷轴展开/墨迹晕染/印章按压/研墨加载，用于流式输出/loading/会话切换 |
+| `gufeng-platform-adapter` | `.../gufeng-platform-adapter/SKILL.md` | Electron 下 Win/macOS 标题栏/字体回退/窗口阴影/菜单栏差异适配 |
+
+**强制约束**（来自各 skill 的"使用约定"）：
+- 所有颜色/字号/间距/圆角/阴影必须引用 design tokens，**禁止硬编码**。
+- 所有动画时长/缓动必须引用 motion tokens，**禁止硬编码**。
+- 组件须覆盖完整状态：normal / hover / active / disabled / focus。
+- 平台差异（标题栏、字体回退、窗口阴影）按 platform-adapter 策略处理。
+
+**意象词汇**（贯穿 UI 文案与视觉）：宣纸、松烟墨、朱砂、青玉、绢布、木纹、竹简、碑刻拓印、玉轴、卷轴、印章、毛笔、研墨。应用名「启明」(qiming) 取"启明之印"之意。
 
 ### 1.3 子项目分解（整个项目的路线图）
 
@@ -69,6 +89,16 @@
 - Markdown + 代码高亮渲染
 - 中断生成（停止按钮）
 - 消息持久化（重开应用会话与消息仍在）
+
+**视觉与交互（古风设计语言）**：
+
+- 全局引用 `gufeng-design-tokens`：宣纸背景、松烟墨文字、朱砂红强调、思源宋体
+- 聊天页/设置页全部使用 `gufeng-component-builder` 的古风组件，无 shadcn 默认现代样式残留
+- 滚动条采用青玉玉轴样式（`gufeng-component-builder` 示例）
+- 流式输出/loading 采用 `gufeng-motion-engine` 的研墨加载动效
+- 会话切换、按钮按压采用卷轴展开 / 印章按压动效
+- Windows 与 macOS 的标题栏、字体回退、窗口阴影按 `gufeng-platform-adapter` 策略区分
+- 全程零硬编码颜色/字号/时长：均走 CSS 变量
 
 ### 2.3 P0 明确不做（留给后续子项目）
 
@@ -138,24 +168,33 @@ qiming-agent/
 │       │   │   ├── keystore/     # APIKey 加密（keytar）
 │       │   │   ├── store/        # SQLite（better-sqlite3）
 │       │   │   ├── chat/         # 聊天循环（streamText）
+│       │   │   ├── window/       # 窗口创建（按 platform-adapter 区分 Win/macOS）
 │       │   │   └── ipc/          # IPC handlers
 │       │   ├── preload/          # contextBridge 暴露受限 API
 │       │   └── renderer/         # Renderer 进程（React）
-│       │       ├── components/   # UI 组件
+│       │       ├── components/
+│       │       │   └── gufeng/   # 古风组件（来自 component-builder）
 │       │       ├── pages/        # 聊天页/设置页
 │       │       ├── stores/       # zustand 状态
-│       │       └── ipc/          # IPC 调用封装
-│       ├── resources/            # 图标等
+│       │       ├── ipc/          # IPC 调用封装
+│       │       └── styles/       # tokens 入口、平台字体回退
+│       ├── resources/            # 图标等（古风印章风应用图标）
 │       └── electron-builder.yml  # 打包配置
 ├── packages/
 │   ├── shared/                   # 进程间共享的 TS 类型
-│   └── ui/                       # 可复用 UI 组件库（shadcn 二次封装）
+│   ├── design-tokens/            # gufeng-design-tokens + motion 令牌的 CSS/TS 导出
+│   └── ui/                       # 古风组件库（gufeng-component-builder 产出）
 ├── docs/
 │   └── superpowers/specs/        # 设计文档
 ├── pnpm-workspace.yaml
 ├── package.json
 └── README.md
 ```
+
+**设计令牌的工程化**：`packages/design-tokens` 把 4 个 skill 里的 CSS 变量集中维护，导出为：
+- `tokens.css`：`:root` 内的所有 CSS Custom Properties（design-tokens + motion-engine 合并）
+- `tokens.ts`：等价的 TS 常量，供 Tailwind config 与 JS 逻辑引用
+- `tailwind-theme.ts`：把令牌映射成 Tailwind 的 `colors/fontFamily/borderRadius/shadow` 配置
 
 ---
 
@@ -409,24 +448,153 @@ export async function runTurn(
 
 ---
 
-## 7. 技术选型清单
+## 7. 设计语言实现（古风体系落地）
+
+本节说明 4 个 gufeng skill 如何在 P0 工程化落地。
+
+### 7.1 令牌工程化（`packages/design-tokens`）
+
+把 `gufeng-design-tokens` 与 `gufeng-motion-engine` 的 CSS 变量合并为单一来源：
+
+```css
+/* packages/design-tokens/src/tokens.css */
+:root {
+  /* ===== 来自 gufeng-design-tokens ===== */
+  --bg-paper: #F4ECD8;          /* 宣纸白 */
+  --bg-paper-dark: #E8DDC8;     /* 深宣纸 */
+  --bg-silk: #DCD3C1;           /* 绢布色 */
+  --bg-wood: #5A4A3A;           /* 木纹深棕 */
+  --bg-wood-light: #8A7A6A;     /* 浅木色 */
+
+  --text-ink: #3C3A36;          /* 松烟墨 */
+  --text-ink-light: #6B6965;    /* 淡墨 */
+  --text-ink-reverse: #F4ECD8;  /* 反白墨 */
+
+  --accent-cinnabar: #B33A2C;       /* 朱砂红 - 主强调 */
+  --accent-cinnabar-hover: #9A2E21; /* 朱砂暗 */
+  --accent-lapis: #2C4B5E;          /* 黛蓝 */
+  --accent-gold: #C9A96E;           /* 金色 - 装饰 */
+  --accent-jade: #7BA39C;           /* 青玉色 - 滚动条/辅助 */
+
+  --border-ancient: #B8A990;  /* 古铜色 */
+  --border-ink: #8A8070;      /* 墨线色 */
+
+  /* 字体 / 字号 / 行高 / 间距 / 圆角 / 阴影 / 边框宽度 / 纹理
+     完整照搬 design-tokens 与 motion-engine 的令牌，此处省略 */
+
+  /* ===== 来自 gufeng-motion-engine ===== */
+  --ease-brush-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-brush-in: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --ease-scroll: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-ink: cubic-bezier(0.6, 0.04, 0.98, 0.34);
+  --duration-instant: 150ms;
+  --duration-fast: 300ms;
+  --duration-medium: 500ms;
+  --duration-slow: 800ms;
+  --duration-ink: 1200ms;
+}
+```
+
+Tailwind config 把这些变量映射为 `colors.cinnabar`、`fontFamily.cn`、`radius.base` 等，组件代码用 Tailwind 类名书写，但底层值全部来自令牌。
+
+### 7.2 组件清单（`packages/ui` + `renderer/components/gufeng/`）
+
+P0 需要用到的 `gufeng-component-builder` 组件（按页面归集）：
+
+| 组件 | 用于 | 灵感 |
+|---|---|---|
+| 窗口框架 / 标题栏 | 全局 | 木纹边框 + 印章风窗口按钮 |
+| 侧边导航 | 会话侧栏 | 卷轴/竹简意象 |
+| 按钮（主/次/禁用） | 设置页操作 | 碑刻拓印，悬停朱砂浮现 |
+| 输入框 / Textarea | 聊天输入、配置字段 | 宣纸留白、墨线边框 |
+| 下拉菜单 | provider/模型选择 | — |
+| 卡片/面板 | provider 列表项、消息气泡 | 绢布底 |
+| 滚动条 | 全局 | 青玉玉轴 |
+| 弹窗/对话框 | 删除确认、连接测试结果 | — |
+| 提示框 | 错误提示 | — |
+
+实现原则：每个组件一个 `.tsx` + 同名 `.module.css`，CSS 引用令牌变量，覆盖 normal/hover/active/disabled/focus 五态。组件骨架可借鉴 shadcn 的无障碍结构（aria、键盘焦点），**但视觉层完全走古风令牌**。
+
+### 7.3 动效应用点（`gufeng-motion-engine`）
+
+| 场景 | 动效 |
+|---|---|
+| 流式输出等待 | 研墨加载（`loading-ink`） |
+| 会话侧栏展开/收起 | 卷轴展开（`ease-scroll` + `duration-medium`） |
+| 按钮点击 | 印章按压（`seal-press` keyframe） |
+| 按钮/卡片悬停 | 墨迹扩散（`ink-spread`，跟随鼠标位置） |
+| 会话切换 | 翻页转场（`page-turn`） |
+| 普通过渡 | 毛笔回弹（`ease-brush-out` + `duration-fast`） |
+
+性能遵循 motion-engine 约定：动画优先 `transform`/`opacity`，必要时 `will-change: transform`；Canvas 毛笔光标（如启用）仅在鼠标移动时渲染。
+
+### 7.4 平台适配（`gufeng-platform-adapter`，`main/window/`）
+
+Main 进程创建窗口时按平台分支：
+
+```typescript
+// apps/desktop/src/main/window/create.ts
+import { BrowserWindow } from 'electron';
+
+export function createMainWindow() {
+  const isMac = process.platform === 'darwin';
+
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    backgroundColor: '#F4ECD8',          // 宣纸白，避免白闪
+    titleBarStyle: isMac ? 'hiddenInset' : 'hidden', // macOS 内嵌；Windows 自绘
+    frame: !isMac ? false : true,        // Windows 无边框自绘木纹标题栏
+    // macOS Vibrancy 可选：'titlebar' 下方加 vibrancy:'under-window'
+    vibrancy: isMac ? 'under-window' : undefined,
+    webPreferences: {
+      preload: path.join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  return win;
+}
+```
+
+Renderer 侧通过 `@supports` 或运行时 `navigator.userAgentData.platform` 检测平台，加载对应字体回退与窗口阴影类：
+
+```css
+/* macOS：宋体优先 + 柔和墨晕 */
+:root[data-platform='darwin'] {
+  --font-family-cn: 'Songti SC', 'Source Han Serif SC', serif;
+}
+/* Windows：SimSun 优先 + 硬朗木框 */
+:root[data-platform='win32'] {
+  --font-family-cn: 'SimSun', 'Source Han Serif SC', serif;
+}
+```
+
+Windows 自绘标题栏由 `gufeng-component-builder` 的标题栏组件渲染（含仿木纹最小/最大/关闭按钮）；macOS 复用系统红黄绿按钮但背景透出宣纸色。
+
+---
+
+## 8. 技术选型清单
 
 | 层 | 选型 | 理由 |
 |---|---|---|
 | 桌面框架 | Electron 30+ + electron-vite | 当前最现代的 Electron 构建工具 |
 | 前端 | React 18 + TypeScript + Vite | 用户选择 |
 | 状态管理 | zustand | 轻量，聊天状态足够 |
-| UI 组件 | shadcn/ui + Tailwind CSS | 可定制、不锁框架、风格专业 |
+| **UI 组件** | **古风组件库（基于 gufeng-component-builder）** + shadcn 仅取无障碍结构骨架 | 古风视觉令牌强制覆盖；shadcn 不出现在视觉层 |
+| **CSS 方案** | **Tailwind CSS + CSS Modules**（古风令牌映射进 Tailwind theme） | 令牌单一来源，零硬编码 |
 | Markdown | react-markdown + react-syntax-highlighter | 渲染富文本与代码 |
+| **设计令牌** | gufeng-design-tokens + gufeng-motion-engine（集中维护于 `packages/design-tokens`） | 古风视觉与动效单一来源 |
 | LLM 抽象 | Vercel AI SDK（`ai` + `@ai-sdk/openai/anthropic/google`） | 已抽象多厂商 |
 | 密钥库 | keytar | 跨平台原生密钥库 |
 | 数据库 | better-sqlite3 | 同步 API、性能好、Electron 友好 |
 | 包管理 | pnpm + workspace | monorepo |
-| 打包分发 | electron-builder | Win/Mac 安装包 |
+| 打包分发 | electron-builder | Win/Mac 安装包，图标走古风印章风 |
 
 ---
 
-## 8. 测试策略（P0）
+## 9. 测试策略（P0）
 
 | 层 | 策略 |
 |---|---|
@@ -435,13 +603,14 @@ export async function runTurn(
 | KeyStore | 跳过单测（依赖系统密钥库），手动验证 |
 | SQLite store | 单测：内存 SQLite（`:memory:`），验证 CRUD 与级联删除 |
 | IPC 层 | 手动集成测试：起 Electron，验证 Renderer 能正确读写 |
+| **古风令牌/组件** | 单测：验证 `tokens.css` 无硬编码（grep 正则）；组件快照测试覆盖五态 |
 | 端到端 | 手动：配置一个真实 provider，完成一轮流式对话 |
 
-P0 不强求自动化 E2E；优先保证 store 与 provider 工厂有单测覆盖。
+P0 不强求自动化 E2E；优先保证 store、provider 工厂、令牌纯净度有单测覆盖。
 
 ---
 
-## 9. 风险与缓解
+## 10. 风险与缓解
 
 | 风险 | 缓解 |
 |---|---|
@@ -449,10 +618,13 @@ P0 不强求自动化 E2E；优先保证 store 与 provider 工厂有单测覆�
 | `keytar` 同样是原生模块，跨平台行为差异 | 同上；并为密钥库失败准备降级（加密文件 fallback，标为后续） |
 | 国产 OpenAI 兼容端点的细微差异（工具调用字段） | P0 不做工具调用，规避；P2 引入时再处理 |
 | Vercel AI SDK 版本迭代快 | 锁定主版本；抽象一层 `buildModel` 隔离 SDK 变化 |
+| **古风字体未安装时回退丑陋** | `font-display: swap` + 平台原生字体（macOS Songti SC / Windows SimSun）优先；思源宋体作为可选增强 |
+| **Windows 自绘标题栏拖拽/双击最大化** | 自绘标题栏需手动实现 `-webkit-app-region: drag` 与最大化逻辑，参考 platform-adapter |
+| **动效过度影响性能或干扰** | 遵守 motion-engine 的 transform/opacity 原则；提供"减少动效"开关（尊重系统 prefers-reduced-motion） |
 
 ---
 
-## 10. P0 完成后的衔接
+## 11. P0 完成后的衔接
 
 P0 落地后，后续子项目各自开新一轮 brainstorming + spec：
 
