@@ -1,0 +1,51 @@
+/* 单条消息气泡：用户=绢布偏右，助手=宣纸偏左（带纸纹） */
+.bubble {
+  max-width: 80%;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  box-shadow: var(--shadow-ink-sm);
+  animation: fade-in var(--duration-fast) var(--ease-brush-in);
+  /* 文字换行：长串不撑破气泡 */
+  word-break: break-word;
+}
+
+.user {
+  margin-left: auto;
+  background: var(--bg-silk);
+  border: var(--border-width-thin) solid var(--border-ancient);
+}
+
+.assistant {
+  background: var(--bg-paper);
+  background-image: var(--texture-paper);
+  border: var(--border-width-thin) solid var(--border-ink);
+}
+
+/* markdown 排版微调：段落间距归零（外层 bubble 控制 gap） */
+.bubble :global(p) {
+  margin: 0 0 var(--space-2);
+}
+.bubble :global(p:last-child) {
+  margin-bottom: 0;
+}
+.bubble :global(pre) {
+  margin: var(--space-2) 0;
+  overflow-x: auto;
+}
+.bubble :global(code) {
+  font-family: var(--font-family-en);
+  font-size: var(--font-size-sm);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

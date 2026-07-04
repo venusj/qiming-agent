@@ -1,0 +1,31 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  padding: 0 var(--space-4);
+  background: var(--bg-wood);
+  background-image: var(--texture-wood);
+  color: var(--text-ink-reverse);
+  font-family: var(--font-family-cn);
+  font-size: var(--font-size-sm);
+  -webkit-app-region: drag;   /* 允许拖拽窗口 */
+  user-select: none;
+}
+.title { letter-spacing: 0.1em; }
+.controls {
+  display: flex;
+  gap: var(--space-1);
+  -webkit-app-region: no-drag;
+}
+.btn {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent;
+  color: var(--text-ink-reverse);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) var(--ease-brush-in);
+}
+.btn:hover { background: var(--bg-wood-light); }
+.close:hover { background: var(--accent-cinnabar); }

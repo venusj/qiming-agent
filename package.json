@@ -1,0 +1,20 @@
+{
+  "name": "qiming-agent",
+  "private": true,
+  "version": "0.0.0",
+  "description": "启明 - 类 Codex 的跨平台古风 AI Agent 桌面应用",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm --filter @qiming/desktop dev",
+    "build": "pnpm --filter @qiming/desktop build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

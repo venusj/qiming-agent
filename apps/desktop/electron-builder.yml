@@ -1,0 +1,19 @@
+appId: com.qiming.agent
+productName: 启明
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - out/**/*
+asarUnpack:
+  - '**/*.{node,dll}'   # better-sqlite3 / keytar 原生模块
+win:
+  target: nsis
+  icon: resources/icon.png
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target: dmg
+  icon: resources/icon.png
+  category: public.app-category.productivity

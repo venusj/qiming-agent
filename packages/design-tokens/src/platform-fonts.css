@@ -1,0 +1,8 @@
+/* macOS：宋体优先 */
+:root[data-platform='darwin'] {
+  --font-family-cn: 'Songti SC', 'Source Han Serif SC', serif;
+}
+/* Windows：SimSun 优先 */
+:root[data-platform='win32'] {
+  --font-family-cn: 'SimSun', 'Source Han Serif SC', serif;
+}

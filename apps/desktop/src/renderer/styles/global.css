@@ -1,0 +1,33 @@
+/* 引入设计令牌（古风 CSS 变量，来自 @qiming/design-tokens） */
+@import '@qiming/design-tokens/tokens.css';
+@import '@qiming/design-tokens/platform-fonts.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-family-ui);
+  background-color: var(--bg-paper);
+  background-image: var(--texture-paper);
+  color: var(--text-ink);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* 减少动效：尊重系统偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

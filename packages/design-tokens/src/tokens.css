@@ -1,0 +1,94 @@
+:root {
+  /* ===== 背景色系（宣纸/绢布/木纹） ===== */
+  --bg-paper: #F4ECD8;
+  --bg-paper-dark: #E8DDC8;
+  --bg-silk: #DCD3C1;
+  --bg-wood: #5A4A3A;
+  --bg-wood-light: #8A7A6A;
+
+  /* ===== 文字色系（松烟墨） ===== */
+  --text-ink: #3C3A36;
+  --text-ink-light: #6B6965;
+  --text-ink-reverse: #F4ECD8;
+
+  /* ===== 点缀色系 ===== */
+  --accent-cinnabar: #B33A2C;        /* 朱砂红 - 主强调 */
+  --accent-cinnabar-hover: #9A2E21;  /* 朱砂暗 */
+  --accent-lapis: #2C4B5E;           /* 黛蓝 */
+  --accent-gold: #C9A96E;            /* 金色 - 装饰 */
+  --accent-jade: #7BA39C;            /* 青玉色 - 滚动条/辅助 */
+  --accent-jade-hover: #6B8F88;      /* 深青玉 */
+
+  /* ===== 边框色系 ===== */
+  --border-ancient: #B8A990;  /* 古铜色 */
+  --border-ink: #8A8070;      /* 墨线色 */
+
+  /* ===== 字体族 ===== */
+  --font-family-cn: 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-family-en: 'Cormorant Garamond', 'EB Garamond', serif;
+  --font-family-ui: var(--font-family-cn);
+
+  /* ===== 字号（16px 基准） ===== */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 48px;
+
+  /* ===== 行高 ===== */
+  --line-height-tight: 1.4;
+  --line-height-relaxed: 1.8;
+  --line-height-loose: 2.2;
+
+  /* ===== 间距 ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ===== 圆角（榫卯方正感） ===== */
+  --radius-sm: 2px;
+  --radius-base: 4px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* ===== 阴影（墨迹晕染） ===== */
+  --shadow-ink-sm: 0 2px 4px rgba(60, 58, 54, 0.08);
+  --shadow-ink-md: 0 4px 16px rgba(60, 58, 54, 0.12);
+  --shadow-ink-lg: 0 8px 32px rgba(60, 58, 54, 0.16);
+  --shadow-ink-xl: 0 16px 48px rgba(60, 58, 54, 0.2);
+
+  /* ===== 边框宽度 ===== */
+  --border-width-thin: 1px;
+  --border-width-base: 2px;
+  --border-width-thick: 3px;
+
+  /* ===== 纹理 ===== */
+  --texture-paper: radial-gradient(ellipse at 30% 40%, rgba(0,0,0,0.02) 0%, transparent 60%),
+                   radial-gradient(ellipse at 70% 80%, rgba(0,0,0,0.015) 0%, transparent 50%);
+  --texture-wood: repeating-linear-gradient(90deg,
+                   rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.01) 2px,
+                   rgba(0,0,0,0.03) 4px, rgba(0,0,0,0.01) 6px);
+  --texture-bamboo: repeating-linear-gradient(0deg,
+                   rgba(184,169,144,0.2) 0px, rgba(184,169,144,0.05) 1px,
+                   rgba(184,169,144,0.2) 3px, rgba(184,169,144,0.05) 4px);
+
+  /* ===== 动效缓动（毛笔/卷轴/墨迹） ===== */
+  --ease-brush-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-brush-in: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --ease-scroll: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-ink: cubic-bezier(0.6, 0.04, 0.98, 0.34);
+
+  /* ===== 动效时长 ===== */
+  --duration-instant: 150ms;
+  --duration-fast: 300ms;
+  --duration-medium: 500ms;
+  --duration-slow: 800ms;
+  --duration-ink: 1200ms;
+}

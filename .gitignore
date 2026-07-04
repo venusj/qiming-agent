@@ -1,0 +1,18 @@
+node_modules/
+dist/
+out/
+*.tsbuildinfo
+.DS_Store
+*.log
+.env
+.env.local
+coverage/
+.vite/
+.superpowers/
+
+# vitest 编译产物
+*.test.js
+
+
+# vitest 运行时编译产物（与 .ts 同名）
+apps/desktop/vitest.config.js
