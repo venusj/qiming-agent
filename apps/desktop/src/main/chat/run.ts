@@ -49,7 +49,15 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
     }
 
     const finalText = await result.text;
-    const saved: Message = sessions().appendMessage(sessionId, 'assistant', finalText);
+    // result.usage 是 Promise<LanguageModelUsage>（ai@4.x，见 dist/index.d.ts:2636）
+    const usage = await result.usage;
+    const completionTokens = usage?.completionTokens ?? null;
+    const saved: Message = sessions().appendMessage(
+      sessionId,
+      'assistant',
+      finalText,
+      completionTokens,
+    );
     win?.webContents.send(IPC.CHAT_DONE, { sessionId, message: saved });
   } catch (e: unknown) {
     if (controller.signal.aborted) {

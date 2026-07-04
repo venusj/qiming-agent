@@ -13,7 +13,7 @@ export interface Message {
   id: string;
   sessionId: string;
   role: MessageRole;
-  /** JSON 字符串：P0 为纯文本 { text: string }；P2 起含工具调用 */
+  /** 纯文本字符串（P2 工具调用会引入结构化 content，届时扩展） */
   content: string;
   tokens: number | null;
   createdAt: number;
