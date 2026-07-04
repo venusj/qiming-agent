@@ -1,0 +1,52 @@
+.page {
+  padding: var(--space-8);
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  color: var(--text-ink);
+  margin: 0;
+  letter-spacing: 0.1em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.name {
+  font-size: var(--font-size-lg);
+  color: var(--text-ink);
+}
+
+.kind {
+  font-size: var(--font-size-xs);
+  color: var(--text-ink-light);
+  padding: 2px var(--space-2);
+  border: var(--border-width-thin) solid var(--border-ancient);
+  border-radius: var(--radius-sm);
+}
+
+.meta {
+  font-size: var(--font-size-sm);
+  color: var(--text-ink-light);
+  line-height: var(--line-height-relaxed);
+}
