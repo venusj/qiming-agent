@@ -48,6 +48,11 @@ const api: ExposedApi = {
       };
     },
   },
+  window: {
+    minimize: () => ipcRenderer.invoke(IPC.WINDOW_MINIMIZE),
+    toggleMaximize: () => ipcRenderer.invoke(IPC.WINDOW_TOGGLE_MAXIMIZE),
+    close: () => ipcRenderer.invoke(IPC.WINDOW_CLOSE),
+  },
 };
 
 contextBridge.exposeInMainWorld('qiming', api);

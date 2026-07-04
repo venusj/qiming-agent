@@ -20,6 +20,9 @@ export const IPC = {
   CHAT_DELTA: 'chat:delta',
   CHAT_DONE: 'chat:done',
   CHAT_ERROR: 'chat:error',
+  WINDOW_MINIMIZE: 'window:minimize',
+  WINDOW_TOGGLE_MAXIMIZE: 'window:toggleMaximize',
+  WINDOW_CLOSE: 'window:close',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
@@ -70,5 +73,10 @@ export interface ExposedApi {
     onDelta(cb: (p: ChatDeltaPayload) => void): () => void;
     onDone(cb: (p: ChatDonePayload) => void): () => void;
     onError(cb: (p: ChatErrorPayload) => void): () => void;
+  };
+  window: {
+    minimize(): Promise<void>;
+    toggleMaximize(): Promise<void>;
+    close(): Promise<void>;
   };
 }

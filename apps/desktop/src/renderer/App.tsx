@@ -10,14 +10,10 @@ import styles from './App.module.css';
  * T12 起挂载聊天页（替换 T5 的占位标题屏）；T13 加入「对话 / 设置」页面切换。
  * Windows 平台渲染自绘木纹标题栏；macOS/Linux 走系统标题栏。
  *
- * ── TitleBar 窗口控制占位 ──
- * 真正的最小化/最大化/关闭通过 IPC 实现，属于 T14（窗口控制）范畴。
- * T11 暴露的 window.qiming 当前不含 window 命名空间，
- * 故此处三个回调暂为空函数占位，调用 window.qiming.window.* 会报运行时错误。
- * T14 将在此接线真实窗口控制。
+ * ── TitleBar 窗口控制 ──
+ * T14：最小化/最大化/关闭通过 IPC 调 window.qiming.window.*，
+ * 经 preload → main 的 window handler 操控所属 BrowserWindow。
  */
-const noop = () => {};
-
 type Page = 'chat' | 'settings';
 
 export function App() {
@@ -30,7 +26,11 @@ export function App() {
   return (
     <div className={styles.app}>
       {isWin && (
-        <TitleBar onClose={noop} onMinimize={noop} onToggleMaximize={noop} />
+        <TitleBar
+          onClose={() => window.qiming.window.close()}
+          onMinimize={() => window.qiming.window.minimize()}
+          onToggleMaximize={() => window.qiming.window.toggleMaximize()}
+        />
       )}
       <nav className={styles.nav}>
         <Button
