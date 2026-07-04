@@ -43,6 +43,8 @@ export interface ChatDeltaPayload {
 export interface ChatDonePayload {
   sessionId: string;
   message: Message;
+  /** P1.3 新增：上下文用量，供 UI token 进度条 */
+  usage?: { contextWindow: number; usedTokens: number };
 }
 
 export interface ChatErrorPayload {
