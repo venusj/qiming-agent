@@ -16,6 +16,10 @@ export interface ProviderConfig {
   defaultModel: string;
   enabledModels: string[];
   headers?: Record<string, string>;
+  /** P1 新增：embedding 模型名（如 'text-embedding-3-small'），未配置则该 provider 不支持记忆 */
+  embeddingModel?: string;
+  /** P1 新增：上下文窗口大小（如 128000），用于压缩预算规划 */
+  contextWindow?: number;
   createdAt: number;
   updatedAt: number;
 }

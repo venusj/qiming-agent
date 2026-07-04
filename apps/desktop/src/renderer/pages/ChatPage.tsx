@@ -138,6 +138,7 @@ export function ChatPage() {
                     role: 'assistant',
                     content: s.streamBuffer,
                     tokens: null,
+                    kind: 'message',
                     createdAt: 0,
                   }}
                 />
@@ -156,6 +157,7 @@ export function ChatPage() {
                 role: 'assistant',
                 content: s.streamBuffer,
                 tokens: null,
+                kind: 'message',
                 createdAt: 0,
               }}
             />

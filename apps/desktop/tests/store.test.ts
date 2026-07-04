@@ -1,13 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
-import { readFileSync } from 'node:fs';
+import { runMigrations } from '../src/main/store/migration';
 import { createProviderStore } from '../src/main/store/providers';
 import { createSessionStore } from '../src/main/store/sessions';
 
 function memDb(): Database.Database {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
-  db.exec(readFileSync(new URL('../src/main/store/schema.sql', import.meta.url), 'utf-8'));
+  // P1.1：用 runMigrations 建表（含 memories + messages.kind 列）。
+  // 不再直接读 schema.sql —— 该文件不含 kind 列（kind 由 migration v2 的 after 钩子 ALTER 加）。
+  runMigrations(db);
   return db;
 }
 
