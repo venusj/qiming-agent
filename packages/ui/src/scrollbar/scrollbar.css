@@ -1,0 +1,10 @@
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-paper-dark); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb {
+  background: var(--accent-jade);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-paper-dark);
+  transition: background var(--duration-fast) var(--ease-brush-in);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent-jade-hover); }
+* { scrollbar-width: thin; scrollbar-color: var(--accent-jade) var(--bg-paper-dark); }

@@ -1,0 +1,11 @@
+.select {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-family-cn);
+  font-size: var(--font-size-sm);
+  color: var(--text-ink);
+  background: var(--bg-paper);
+  border: var(--border-width-thin) solid var(--border-ink);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.select:focus { outline: none; border-color: var(--accent-cinnabar); }

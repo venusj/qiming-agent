@@ -15,6 +15,7 @@
     "@ai-sdk/openai": "^0.0.60",
     "@qiming/design-tokens": "workspace:*",
     "@qiming/shared": "workspace:*",
+    "@qiming/ui": "workspace:*",
     "ai": "^4.0.0",
     "better-sqlite3": "^11.0.0",
     "keytar": "^7.9.0",

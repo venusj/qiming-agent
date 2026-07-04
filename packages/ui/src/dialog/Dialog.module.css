@@ -1,0 +1,21 @@
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(60,58,54,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  animation: fade var(--duration-fast) var(--ease-brush-in);
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.panel {
+  background: var(--bg-paper);
+  background-image: var(--texture-paper);
+  border: var(--border-width-base) solid var(--border-ancient);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-ink-xl);
+  padding: var(--space-6);
+  min-width: 320px;
+  max-width: 90vw;
+}
+.title { font-size: var(--font-size-lg); color: var(--text-ink); margin: 0 0 var(--space-4); }
+.body { color: var(--text-ink); }
+.footer { margin-top: var(--space-6); display: flex; justify-content: flex-end; gap: var(--space-3); }

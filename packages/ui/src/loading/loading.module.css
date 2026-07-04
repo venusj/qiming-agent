@@ -1,0 +1,12 @@
+.wrap { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-ink-light); font-size: var(--font-size-sm); }
+.ink {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-cinnabar), transparent 70%);
+  animation: ink-grinding 1.6s var(--ease-brush-in) infinite;
+}
+.label { font-family: var(--font-family-cn); }
+@keyframes ink-grinding {
+  0% { transform: scale(0.8); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(0.8); opacity: 0.3; }
+}
