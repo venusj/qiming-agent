@@ -1,25 +1,48 @@
 /**
- * 主窗口创建。
+ * 主窗口创建（含平台分支）。
  *
- * T4 阶段为最小存根：仅创建一个最小可用 BrowserWindow 并加载 dev server / 打包产物。
- * T5 将在此实现完整的平台分支逻辑（macOS 无边框 / Windows / Linux 尺寸与样式）
- * 与窗口生命周期管理（多窗口、状态恢复等）。
+ * - macOS：titleBarStyle 'hiddenInset' + vibrancy 'under-window'，红黄绿内嵌；
+ *   保留系统框架（frame: true）。
+ * - Windows/Linux：frame: false，由 T6/T14 自绘标题栏补回拖拽区与控制按钮。
+ *
+ * dev 下加载 electron-vite 注入的 ELECTRON_RENDERER_URL；构建产物加载打包的
+ * renderer/index.html。窗口默认隐藏，ready-to-show 后再显示，避免启动白闪。
  */
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, shell } from 'electron';
 import { join } from 'node:path';
+import { is } from '@electron-toolkit/utils';
 
 export function createMainWindow(): BrowserWindow {
+  const isMac = process.platform === 'darwin';
+
   const win = new BrowserWindow({
-    width: 1200,
+    width: 1280,
     height: 800,
-    title: '启明',
-    autoHideMenuBar: true,
+    minWidth: 900,
+    minHeight: 600,
+    backgroundColor: '#F4ECD8', // 宣纸白，避免启动白闪
+    titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
+    frame: isMac, // macOS 保留系统框架；Windows 无边框自绘
+    vibrancy: isMac ? 'under-window' : undefined,
+    show: false,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
   });
 
-  // electron-vite 在 dev 期间提供 MAIN_VITE_DEV_SERVER_URL；构建期间加载打包产物。
-  const devServerUrl = process.env['ELECTRON_RENDERER_URL'];
-  if (devServerUrl) {
-    void win.loadURL(devServerUrl);
+  win.on('ready-to-show', () => win.show());
+
+  // 外链一律用系统浏览器打开，禁止在 Electron 内新开窗口
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    void shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    void win.loadURL(process.env.ELECTRON_RENDERER_URL);
   } else {
     void win.loadFile(join(__dirname, '../renderer/index.html'));
   }

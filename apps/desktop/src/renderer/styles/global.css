@@ -12,3 +12,22 @@ body,
   height: 100%;
   margin: 0;
 }
+
+body {
+  font-family: var(--font-family-ui);
+  background-color: var(--bg-paper);
+  background-image: var(--texture-paper);
+  color: var(--text-ink);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* 减少动效：尊重系统偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

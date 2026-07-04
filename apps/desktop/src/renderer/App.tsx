@@ -1,4 +1,11 @@
+import { useEffect } from 'react';
+import { detectPlatform } from './lib/platform';
+
 export function App() {
+  useEffect(() => {
+    document.documentElement.dataset.platform = detectPlatform();
+  }, []);
+
   return (
     <div className="min-h-screen bg-paper text-ink font-cn p-8">
       <h1 className="text-2xl">启明</h1>
