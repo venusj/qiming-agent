@@ -14,6 +14,7 @@ export const IPC = {
   SESSION_RENAME: 'session:rename',
   SESSION_DELETE: 'session:delete',
   SESSION_SET_BINDING: 'session:setBinding',
+  SESSION_MESSAGES: 'session:messages',
   CHAT_SEND: 'chat:send',
   CHAT_STOP: 'chat:stop',
   CHAT_DELTA: 'chat:delta',

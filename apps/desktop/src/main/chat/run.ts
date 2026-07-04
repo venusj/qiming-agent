@@ -2,15 +2,12 @@ import { streamText } from 'ai';
 import { BrowserWindow } from 'electron';
 import { IPC, type Message } from '@qiming/shared';
 import { getDb } from '../store/db';
-import { createSessionStore } from '../store/sessions';
-import { createProviderStore } from '../store/providers';
+import { createSessionStore, createProviderStore } from '../store';
 import { buildModel } from '../providers/factory';
 import { getController, abortController } from './registry';
 
-// NOTE: 直接从具体文件 import（createSessionStore from '../store/sessions'，
-// createProviderStore from '../store/providers'），而非 brief 顶部写的
-// `from '../store'`——因为 T8 未建 store/index.ts barrel（属 T11 Step 1）。
-// 等 T11 建 barrel 后可统一改为 `from '../store'`。
+// store barrel（T11 Step 1）已建：createSessionStore/createProviderStore/getDb 统一从
+// '../store' 取。getDb 仍从 '../store/db' 取（与 store/index.ts re-export 等价，保持单一来源）。
 
 const sessions = () => createSessionStore(getDb());
 const providers = () => createProviderStore(getDb());
