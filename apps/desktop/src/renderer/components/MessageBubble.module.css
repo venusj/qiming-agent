@@ -49,3 +49,33 @@
     transform: none;
   }
 }
+
+/* —— 摘要气泡（kind='summary'）：竹简样式 —— */
+.summary {
+  background: var(--bg-paper-dark);
+  background-image: var(--texture-bamboo);
+  border-left: var(--border-width-thick) solid var(--border-ancient);
+  border-radius: var(--radius-base);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-ink-light);
+  font-size: var(--font-size-sm);
+}
+
+.summaryTitle {
+  cursor: pointer;
+  font-family: var(--font-family-cn);
+  color: var(--text-ink);
+  letter-spacing: 0.1em;
+  list-style: none;
+}
+
+.summaryTitle::before {
+  content: '❯ ';
+  color: var(--accent-gold);
+}
+
+.summaryBody {
+  margin-top: var(--space-2);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-wrap;
+}

@@ -1,0 +1,32 @@
+/* 上下文 token 进度条：朱砂色，超 80% 加深示警 */
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-ink-light);
+}
+
+.track {
+  width: 120px;
+  height: var(--space-2);
+  background: var(--bg-paper-dark);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--accent-cinnabar);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-fast) var(--ease-brush-in);
+}
+
+.warn {
+  background: var(--accent-cinnabar-hover);
+}
+
+.label {
+  font-family: var(--font-family-cn);
+  min-width: 3em;
+}

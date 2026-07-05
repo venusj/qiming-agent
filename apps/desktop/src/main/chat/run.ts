@@ -147,6 +147,9 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
           role: 'assistant',
           content: '[已中断]',
           tokens: null,
+          // P1.0 遗留债：abort 分支合成的 Message 缺 kind（webContents.send 宽松签名致 tsc 未报错）。
+          // P1.7 MessageBubble 读 m.kind，缺失会落到 undefined。此处补上。
+          kind: 'message',
           createdAt: Date.now(),
         },
       });
