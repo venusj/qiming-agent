@@ -53,6 +53,15 @@ const api: ExposedApi = {
     toggleMaximize: () => ipcRenderer.invoke(IPC.WINDOW_TOGGLE_MAXIMIZE),
     close: () => ipcRenderer.invoke(IPC.WINDOW_CLOSE),
   },
+  memory: {
+    list: () => ipcRenderer.invoke(IPC.MEMORY_LIST),
+    add: (content, providerId) =>
+      ipcRenderer.invoke(IPC.MEMORY_ADD, content, providerId),
+    update: (id, input, providerId) =>
+      ipcRenderer.invoke(IPC.MEMORY_UPDATE, id, input, providerId),
+    delete: (id) => ipcRenderer.invoke(IPC.MEMORY_DELETE, id),
+    reembed: (providerId) => ipcRenderer.invoke(IPC.MEMORY_REEMBED, providerId),
+  },
 };
 
 contextBridge.exposeInMainWorld('qiming', api);

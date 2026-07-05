@@ -45,6 +45,23 @@ const migrations: Migration[] = [
       }
     },
   },
+  {
+    // P1.8: providers 表加 embedding_model / context_window 两列。
+    //  schema.sql 已含此二列（新建 DB 经 version 1 即有），此处仅为老 DB 补列。
+    //  better-sqlite3 不支持 ADD COLUMN IF NOT EXISTS，用 PRAGMA 检查后安全 ALTER。
+    version: 3,
+    name: 'p1-provider-embedding-fields',
+    sql: '',
+    after: (db) => {
+      const cols = db.prepare('PRAGMA table_info(providers)').all() as { name: string }[];
+      if (!cols.some((c) => c.name === 'embedding_model')) {
+        db.exec('ALTER TABLE providers ADD COLUMN embedding_model TEXT');
+      }
+      if (!cols.some((c) => c.name === 'context_window')) {
+        db.exec('ALTER TABLE providers ADD COLUMN context_window INTEGER');
+      }
+    },
+  },
 ];
 
 /** 版本化迁移。getDb() 启动时调用。

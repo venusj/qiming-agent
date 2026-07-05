@@ -54,6 +54,36 @@ describe('providerStore', () => {
     store.delete(p.id);
     expect(store.list()).toHaveLength(0);
   });
+  it('create/update 持久化 embeddingModel / contextWindow（P1.8）', () => {
+    const store = createProviderStore(db);
+    const p = store.create({
+      name: 'emb',
+      kind: 'openai',
+      apiKeyRef: 'r',
+      defaultModel: 'gpt-4o',
+      enabledModels: [],
+      embeddingModel: 'text-embedding-3-small',
+      contextWindow: 128000,
+    });
+    const got = store.get(p.id);
+    expect(got?.embeddingModel).toBe('text-embedding-3-small');
+    expect(got?.contextWindow).toBe(128000);
+    // update 只改 embeddingModel，contextWindow 不丢
+    store.update(p.id, { embeddingModel: 'text-embedding-3-large' });
+    const u = store.get(p.id);
+    expect(u?.embeddingModel).toBe('text-embedding-3-large');
+    expect(u?.contextWindow).toBe(128000);
+    // 未配置的 provider 取出为 undefined
+    const p2 = store.create({
+      name: 'no-emb',
+      kind: 'anthropic',
+      apiKeyRef: 'r2',
+      defaultModel: 'claude',
+      enabledModels: [],
+    });
+    expect(store.get(p2.id)?.embeddingModel).toBeUndefined();
+    expect(store.get(p2.id)?.contextWindow).toBeUndefined();
+  });
 });
 
 describe('sessionStore 级联删除', () => {

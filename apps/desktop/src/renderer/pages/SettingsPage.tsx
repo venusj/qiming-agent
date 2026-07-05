@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../ipc/client';
 import { Button, Card, Dialog } from '@qiming/ui';
 import { ProviderForm } from '../components/ProviderForm';
+import { MemoryPanel } from '../components/MemoryPanel';
 import type { ProviderConfig } from '@qiming/shared';
 import styles from './SettingsPage.module.css';
 
@@ -98,6 +99,8 @@ export function SettingsPage() {
       >
         确定删除「{confirmDelete?.name}」？该操作会同时清除已保存的 APIKey。
       </Dialog>
+
+      <MemoryPanel />
     </div>
   );
 }

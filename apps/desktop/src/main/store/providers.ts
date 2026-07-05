@@ -11,6 +11,8 @@ interface Row {
   default_model: string;
   enabled_models: string | null;
   headers: string | null;
+  embedding_model: string | null;
+  context_window: number | null;
   created_at: number;
   updated_at: number;
 }
@@ -26,6 +28,8 @@ function rowToConfig(r: Row): ProviderConfig {
     defaultModel: r.default_model,
     enabledModels: r.enabled_models ? JSON.parse(r.enabled_models) : [],
     headers: r.headers ? JSON.parse(r.headers) : undefined,
+    embeddingModel: r.embedding_model ?? undefined,
+    contextWindow: r.context_window ?? undefined,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -48,8 +52,9 @@ export function createProviderStore(db: Database) {
       const id = randomUUID();
       db.prepare(
         `INSERT INTO providers
-        (id, name, kind, base_url, api_key_ref, default_model, enabled_models, headers, created_at, updated_at)
-        VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        (id, name, kind, base_url, api_key_ref, default_model, enabled_models, headers,
+         embedding_model, context_window, created_at, updated_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
       ).run(
         id,
         input.name,
@@ -59,6 +64,8 @@ export function createProviderStore(db: Database) {
         input.defaultModel,
         JSON.stringify(input.enabledModels),
         input.headers ? JSON.stringify(input.headers) : null,
+        input.embeddingModel ?? null,
+        input.contextWindow ?? null,
         now,
         now,
       );
@@ -71,7 +78,7 @@ export function createProviderStore(db: Database) {
       const merged: ProviderConfig = { ...cur, ...input, updatedAt: Date.now() };
       db.prepare(
         `UPDATE providers SET name=?, kind=?, base_url=?, api_key_ref=?,
-        default_model=?, enabled_models=?, headers=?, updated_at=? WHERE id=?`,
+        default_model=?, enabled_models=?, headers=?, embedding_model=?, context_window=?, updated_at=? WHERE id=?`,
       ).run(
         merged.name,
         merged.kind,
@@ -80,6 +87,8 @@ export function createProviderStore(db: Database) {
         merged.defaultModel,
         JSON.stringify(merged.enabledModels),
         merged.headers ? JSON.stringify(merged.headers) : null,
+        merged.embeddingModel ?? null,
+        merged.contextWindow ?? null,
         merged.updatedAt,
         id,
       );

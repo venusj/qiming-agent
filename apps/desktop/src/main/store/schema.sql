@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS providers (
   default_model TEXT NOT NULL,
   enabled_models TEXT,
   headers TEXT,
+  -- P1.8：embedding 模型名（无值则该 provider 不支持记忆）
+  embedding_model TEXT,
+  -- P1.8：上下文窗口大小（用于压缩预算规划）
+  context_window INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );

@@ -34,4 +34,8 @@ export interface ProviderTemplate {
   baseUrl?: string;
   defaultModel: string;
   enabledModels: string[];
+  /** P1.8：该厂商推荐的 embedding 模型（无则该厂商不支持记忆，如 Anthropic） */
+  embeddingModel?: string;
+  /** P1.8：该厂商推荐的上下文窗口大小（用于压缩预算） */
+  contextWindow?: number;
 }
