@@ -8,6 +8,7 @@ import { getController, abortController } from './registry';
 import { planBudget } from '../context/budget';
 import { compressMessages } from '../context/compressor';
 import { estimateTokens } from '../context/tokenCounter';
+import { retrieveMemories } from '../memory/retriever';
 
 // store barrel（T11 Step 1）已建：createSessionStore/createProviderStore/getDb 统一从
 // '../store' 取。getDb 仍从 '../store/db' 取（与 store/index.ts re-export 等价，保持单一来源）。
@@ -38,6 +39,10 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
   try {
     const model = await buildModel(provider, session.model);
 
+    // —— 记忆检索（P1.5）：embed → search top-K → 拼 system prompt 片段 ——
+    const memorySystemPrompt = await retrieveMemories(provider, userMessage);
+    const memoryTokens = memorySystemPrompt ? estimateTokens(memorySystemPrompt) : 0;
+
     // —— 上下文预算规划（P1.3 Step 1）——
     const contextWindow = provider.contextWindow ?? 8000;
     const all = sessions().messages(sessionId);
@@ -47,7 +52,7 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
     let plan = planBudget({
       contextWindow,
       reservedForReply: 4096,
-      memoryTokens: 0, // P1.5 接入记忆后替换
+      memoryTokens, // P1.5：实际记忆 system prompt token 数（0 表示无记忆注入）
       summaries,
       messages: raw,
       keepRecent: 6,
@@ -75,7 +80,7 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
         plan = planBudget({
           contextWindow,
           reservedForReply: 4096,
-          memoryTokens: 0,
+          memoryTokens,
           summaries: latestSummary ? [latestSummary] : [],
           messages: newRaw,
           keepRecent: 6,
@@ -97,6 +102,7 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
 
     const result = streamText({
       model,
+      system: memorySystemPrompt ?? undefined,
       messages: contextMessages,
       abortSignal: controller.signal,
     });
