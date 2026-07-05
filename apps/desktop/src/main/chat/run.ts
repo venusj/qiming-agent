@@ -9,6 +9,7 @@ import { planBudget } from '../context/budget';
 import { compressMessages } from '../context/compressor';
 import { estimateTokens } from '../context/tokenCounter';
 import { retrieveMemories } from '../memory/retriever';
+import { extractAndStore } from '../memory/extractor';
 
 // store barrel（T11 Step 1）已建：createSessionStore/createProviderStore/getDb 统一从
 // '../store' 取。getDb 仍从 '../store/db' 取（与 store/index.ts re-export 等价，保持单一来源）。
@@ -131,6 +132,11 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
       usage: { contextWindow, usedTokens },
     };
     win?.webContents.send(IPC.CHAT_DONE, donePayload);
+
+    // —— 记忆自动提取（P1.6）：后台 fire-and-forget，失败不影响对话 ——
+    void extractAndStore(provider, userMessage, finalText).catch((e) =>
+      console.error('[p1] extractAndStore 异常', e),
+    );
   } catch (e: unknown) {
     if (controller.signal.aborted) {
       win?.webContents.send(IPC.CHAT_DONE, {
