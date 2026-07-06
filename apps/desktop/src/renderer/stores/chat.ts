@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import type { Session, Message, ProviderConfig } from '@qiming/shared';
+import type {
+  Session,
+  Message,
+  ProviderConfig,
+  ApprovalRequest,
+  ApprovalDecision,
+} from '@qiming/shared';
 import { api } from '../ipc/client';
 
 /**
@@ -23,6 +29,9 @@ interface ChatState {
   providers: ProviderConfig[];
   /** P1.3 新增：最近一轮对话的上下文用量（null=尚未收到 done） */
   usage: { contextWindow: number; usedTokens: number } | null;
+  /** P2.6：当前待审批请求（null=无）。一次只展示一个；队列后续请求排队等当前解决。 */
+  pendingApproval: ApprovalRequest | null;
+  respondApproval: (decision: ApprovalDecision) => Promise<void>;
   loadSessions: () => Promise<void>;
   loadProviders: () => Promise<void>;
   selectSession: (id: string) => Promise<void>;
@@ -71,6 +80,14 @@ function ensureStreamListeners(
       });
     }
   });
+
+  api.tools.onApprovalRequest((req) => {
+    // 只展示属于当前活跃会话的审批（其它会话的请求由其当时的 UI 处理；
+    // 实际同时只有一个会话在生成，故直接 set）
+    if (req.sessionId === get().activeSessionId) {
+      set({ pendingApproval: req });
+    }
+  });
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -81,6 +98,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamBuffer: '',
   providers: [],
   usage: null,
+  pendingApproval: null,
 
   loadSessions: async () => set({ sessions: await api.session.list() }),
   loadProviders: async () => set({ providers: await api.provider.list() }),
@@ -91,6 +109,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: await api.session.messages(id),
       streamBuffer: '',
       usage: null,
+      // P2.6：切换会话时清掉残留审批（会话 A 的待审批不应阻塞会话 B 的视图）。
+      pendingApproval: null,
     });
   },
 
@@ -102,6 +122,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: [],
       streamBuffer: '',
       usage: null,
+      pendingApproval: null,
     });
   },
 
@@ -139,5 +160,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const id = get().activeSessionId;
     if (id) await api.chat.stop(id);
     set({ streaming: false });
+  },
+
+  respondApproval: async (decision) => {
+    const req = get().pendingApproval;
+    if (!req) return;
+    // 先清掉对话框（响应式 UX），再发 IPC；顺序不可颠倒——避免 send 失败时弹窗卡死。
+    set({ pendingApproval: null });
+    await api.tools.respondApproval(req, decision);
   },
 }));

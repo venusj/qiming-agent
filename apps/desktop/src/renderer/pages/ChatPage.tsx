@@ -8,6 +8,7 @@ import {
 import { useChatStore } from '../stores/chat';
 import { MessageBubble } from '../components/MessageBubble';
 import { ContextMeter } from '../components/ContextMeter';
+import { ApprovalDialog } from '../components/ApprovalDialog';
 import { Button, Textarea, Dropdown, InkLoading } from '@qiming/ui';
 import styles from './ChatPage.module.css';
 
@@ -201,6 +202,7 @@ export function ChatPage() {
           </div>
         </div>
       </main>
+      <ApprovalDialog />
     </div>
   );
 }

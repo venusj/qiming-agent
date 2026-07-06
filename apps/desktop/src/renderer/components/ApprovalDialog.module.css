@@ -1,0 +1,140 @@
+/* 朱砂印审批弹窗 —— 古风令牌化样式。所有色/字/距/动效均走 var(--*)，
+   仅 overlay 的 rgba(60,58,54,0.5) 为 P0 既有约定例外（半透明遮罩）。 */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(60, 58, 54, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn var(--duration-fast) var(--ease-brush-in);
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel {
+  background: var(--bg-paper);
+  background-image: var(--texture-paper);
+  border: var(--border-width-base) solid var(--accent-cinnabar);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-ink-xl);
+  padding: var(--space-6);
+  min-width: 380px;
+  max-width: 640px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--accent-cinnabar);
+  color: var(--text-ink-reverse);
+  font-family: var(--font-family-cn);
+  font-size: var(--font-size-lg);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-ink-sm);
+}
+.title {
+  font-size: var(--font-size-lg);
+  color: var(--text-ink);
+  margin: 0;
+  letter-spacing: 0.1em;
+}
+
+.body {
+  color: var(--text-ink);
+  margin-bottom: var(--space-5);
+}
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.toolName {
+  font-family: var(--font-family-cn);
+  font-size: var(--font-size-sm);
+  color: var(--accent-cinnabar);
+  letter-spacing: 0.05em;
+}
+.summaryText {
+  font-size: var(--font-size-base);
+}
+.toggle {
+  margin-top: var(--space-2);
+  background: none;
+  border: none;
+  color: var(--accent-lapis);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  padding: 0;
+}
+.toggle:hover {
+  text-decoration: underline;
+}
+.detail {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-paper-dark);
+  border: var(--border-width-thin) solid var(--border-ancient);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-mono, monospace);
+  font-size: var(--font-size-xs);
+  color: var(--text-ink);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 240px;
+  overflow: auto;
+}
+.warn {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--accent-cinnabar);
+  font-style: italic;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+.footer button {
+  font-family: var(--font-family-cn);
+  font-size: var(--font-size-sm);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: var(--border-width-thin) solid var(--border-ancient);
+  background: var(--bg-paper-dark);
+  color: var(--text-ink);
+  transition: background var(--duration-fast) var(--ease-brush-in);
+}
+.footer button:hover {
+  background: var(--bg-silk);
+}
+.btnDeny {
+  border-color: var(--accent-cinnabar) !important;
+  color: var(--accent-cinnabar) !important;
+}
+.btnAllow {
+  background: var(--accent-cinnabar) !important;
+  color: var(--text-ink-reverse) !important;
+  border-color: var(--accent-cinnabar) !important;
+}
+.btnAllow:hover {
+  background: var(--accent-cinnabar-hover) !important;
+}
+.btnSession {
+  border-color: var(--accent-gold) !important;
+  color: var(--accent-gold) !important;
+}
