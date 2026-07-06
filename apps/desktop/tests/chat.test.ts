@@ -20,9 +20,42 @@ vi.mock('../src/main/store/sessions', () => ({
 vi.mock('../src/main/store/providers', () => ({
   createProviderStore: vi.fn(() => ({ get: vi.fn(() => null) })),
 }));
+// P2.5 新增：mock 掉 run.ts 用到的工具链/记忆/压缩/模型工厂
+vi.mock('../src/main/providers/factory', () => ({
+  buildModel: vi.fn(async () => ({})),
+}));
+vi.mock('../src/main/memory/retriever', () => ({
+  retrieveMemories: vi.fn(async () => null),
+}));
+vi.mock('../src/main/memory/extractor', () => ({
+  extractAndStore: vi.fn(async () => undefined),
+}));
+vi.mock('../src/main/context/compressor', () => ({
+  compressMessages: vi.fn(),
+}));
+vi.mock('../src/main/tools/registry', () => ({
+  buildToolRegistry: vi.fn(() => ({ read_file: {} })),
+}));
+vi.mock('../src/main/approval/queue', () => ({
+  getApprovalQueue: vi.fn(() => ({ request: vi.fn(), respond: vi.fn() })),
+}));
 
 import { runTurn } from '../src/main/chat/run';
 import { createSessionStore } from '../src/main/store/sessions';
+import { createProviderStore } from '../src/main/store/providers';
+import { streamText } from 'ai';
+
+/** 构造一个假的 streamText 返回值：含 fullStream（async iter）+ text + usage。 */
+function fakeStreamResult(parts: { type: string; [k: string]: unknown }[]) {
+  const fullStream = (async function* () {
+    for (const p of parts) yield p;
+  })();
+  return {
+    fullStream,
+    text: Promise.resolve('final'),
+    usage: Promise.resolve({ promptTokens: 5, completionTokens: 3 }),
+  };
+}
 
 describe('runTurn', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -47,5 +80,66 @@ describe('runTurn', () => {
     await runTurn('s1', 'hi');
     // 无窗口可发送错误，但不应抛错
     expect(true).toBe(true);
+  });
+
+  it('text-delta 经 CHAT_DELTA 推送且 streamText 收到 tools/maxSteps', async () => {
+    const { BrowserWindow } = await import('electron');
+    const send = vi.fn();
+    vi.mocked(BrowserWindow.getAllWindows).mockReturnValueOnce([
+      { webContents: { send } } as never,
+    ]);
+
+    const appendMessage = vi.fn((_, role, content) => ({
+      id: 'm1',
+      sessionId: 's1',
+      role,
+      content,
+      tokens: null,
+      kind: 'message' as const,
+      createdAt: 0,
+    }));
+    vi.mocked(createSessionStore).mockReturnValueOnce({
+      getSession: vi.fn(() => ({
+        id: 's1',
+        title: null,
+        providerId: 'p1',
+        model: 'gpt',
+        createdAt: 0,
+        updatedAt: 0,
+      })),
+      appendMessage,
+      messages: vi.fn(() => []),
+    } as never);
+
+    // 3rd test 需要 provider 存在，否则 run.ts 在 "provider 不存在" 处提前 return
+    vi.mocked(createProviderStore).mockReturnValueOnce({
+      get: vi.fn(() => ({
+        id: 'p1',
+        name: 'p',
+        kind: 'openai' as const,
+        apiKeyRef: 'provider:p1',
+        defaultModel: 'gpt',
+        enabledModels: ['gpt'],
+        contextWindow: 8000,
+        createdAt: 0,
+        updatedAt: 0,
+      })),
+    } as never);
+
+    vi.mocked(streamText).mockReturnValueOnce(
+      fakeStreamResult([
+        { type: 'text-delta', textDelta: 'hel' },
+        { type: 'text-delta', textDelta: 'lo' },
+      ]) as never,
+    );
+
+    await runTurn('s1', 'hi');
+    expect(streamText).toHaveBeenCalled();
+    const callArg = vi.mocked(streamText).mock.calls.at(-1)?.[0] as Record<string, unknown>;
+    expect(callArg).toBeDefined();
+    expect(callArg.maxSteps).toBe(25);
+    expect(callArg.tools).toBeTypeOf('object');
+    // send 至少被调过（text-delta 推送）
+    expect(send).toHaveBeenCalled();
   });
 });

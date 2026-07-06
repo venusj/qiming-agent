@@ -10,6 +10,8 @@ import { compressMessages } from '../context/compressor';
 import { estimateTokens } from '../context/tokenCounter';
 import { retrieveMemories } from '../memory/retriever';
 import { extractAndStore } from '../memory/extractor';
+import { buildToolRegistry } from '../tools/registry';
+import { getApprovalQueue } from '../approval/queue';
 
 // store barrel（T11 Step 1）已建：createSessionStore/createProviderStore/getDb 统一从
 // '../store' 取。getDb 仍从 '../store/db' 取（与 store/index.ts re-export 等价，保持单一来源）。
@@ -101,15 +103,66 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
       ...plan.recent.map((m) => ({ role: m.role, content: m.content })),
     ];
 
+    const approvalQueue = getApprovalQueue();
+    const tools = buildToolRegistry(approvalQueue, sessionId);
+
     const result = streamText({
       model,
       system: memorySystemPrompt ?? undefined,
       messages: contextMessages,
+      tools,
+      maxSteps: 25,
       abortSignal: controller.signal,
     });
 
-    for await (const delta of result.textStream) {
-      win?.webContents.send(IPC.CHAT_DELTA, { sessionId, delta });
+    for await (const part of result.fullStream) {
+      // buildToolRegistry 返回 Record<string, Tool>（execute 可选），TS 推断的
+      // TextStreamPart 会把 tool-result 过滤出联合类型（index signature 在 mapped
+      // conditional 类型下执行 ToToolsWithDefinedExecute 时的已知限制）。运行时各 part
+      // 字段齐全，故显式 widen 到本 switch 处理的判别联合，保留字段名（args/result/...）。
+      // 其余 step-start/step-finish/finish/reasoning 等类型落到 default 分支。
+      const p = part as
+        | { type: 'text-delta'; textDelta: string }
+        | { type: 'tool-call'; toolCallId: string; toolName: string; args: unknown }
+        | {
+            type: 'tool-result';
+            toolCallId: string;
+            toolName: string;
+            result: unknown;
+          }
+        | { type: 'error'; error: unknown };
+
+      switch (p.type) {
+        case 'text-delta':
+          win?.webContents.send(IPC.CHAT_DELTA, {
+            sessionId,
+            delta: p.textDelta,
+          });
+          break;
+        case 'tool-call':
+          win?.webContents.send(IPC.CHAT_TOOL_CALL, {
+            sessionId,
+            callId: p.toolCallId,
+            tool: p.toolName,
+            args: p.args as Record<string, unknown>,
+          });
+          break;
+        case 'tool-result':
+          win?.webContents.send(IPC.CHAT_TOOL_RESULT, {
+            sessionId,
+            callId: p.toolCallId,
+            tool: p.toolName,
+            result: p.result,
+            ok: !(p.result instanceof Error),
+          });
+          break;
+        case 'error':
+          console.error('[p2] streamText error', p.error);
+          break;
+        default:
+          // step-start/step-finish/finish/reasoning 等不推 UI
+          break;
+      }
     }
 
     const finalText = await result.text;
