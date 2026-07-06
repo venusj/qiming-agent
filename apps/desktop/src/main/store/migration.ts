@@ -62,6 +62,19 @@ const migrations: Migration[] = [
       }
     },
   },
+  {
+    // P2.1: settings key-value 表（工作目录等持久化）。
+    //  幂等：IF NOT EXISTS。
+    version: 4,
+    name: 'p2-settings',
+    sql: `
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    `,
+  },
 ];
 
 /** 版本化迁移。getDb() 启动时调用。
