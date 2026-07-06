@@ -81,6 +81,16 @@
   letter-spacing: 0.05em;
 }
 
+/* auto=自动拾得，黛蓝调；manual=亲笔记下，金调 */
+.auto {
+  border-color: var(--accent-lapis);
+  color: var(--accent-lapis);
+}
+.manual {
+  border-color: var(--accent-gold);
+  color: var(--text-ink);
+}
+
 .sealed {
   font-size: var(--font-size-xs);
   color: var(--text-ink-light);
