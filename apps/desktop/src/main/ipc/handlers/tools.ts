@@ -1,5 +1,5 @@
 // apps/desktop/src/main/ipc/handlers/tools.ts
-import { ipcMain } from 'electron';
+import { ipcMain, dialog, BrowserWindow } from 'electron';
 import { IPC, type ApprovalRequest, type ApprovalDecision } from '@qiming/shared';
 import { getDb, createSettingsStore } from '../../store';
 import { TOOL_INFOS } from '../../tools/infos';
@@ -33,6 +33,18 @@ export function registerToolHandlers() {
   ipcMain.handle(IPC.TOOLS_SET_WORKSPACE, (_e, path: string) => {
     setWorkspaceRoot(path);
     settings.set(WORKSPACE_KEY, path);
+  });
+
+  // P2.7：弹原生目录选择器。SettingsPage 的"选择目录"按钮调用。
+  // 取消或未选返回 null；否则返回首个路径字符串。Main 进程不在此处持久化，
+  // 由调用方拿到 path 后再调 setWorkspace（写 settings + paths 模块）。
+  ipcMain.handle(IPC.TOOLS_PICK_WORKSPACE, async () => {
+    const win = BrowserWindow.getAllWindows()[0];
+    const result = win
+      ? await dialog.showOpenDialog(win, { properties: ['openDirectory'] })
+      : await dialog.showOpenDialog({ properties: ['openDirectory'] });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
   });
 
   ipcMain.handle(

@@ -1,0 +1,79 @@
+/* apps/desktop/src/renderer/components/ToolCallView.module.css */
+/* 工具调用折叠卡片 —— 古风令牌化。朱砂边框 = 危险工具；青玉边框 = 只读工具。 */
+.card {
+  margin: var(--space-2) 0;
+  border: var(--border-width-thin) solid var(--border-ancient);
+  border-radius: var(--radius-sm);
+  background: var(--bg-paper-dark);
+  font-family: var(--font-family-cn);
+  overflow: hidden;
+}
+.safe {
+  border-left: var(--border-width-base) solid var(--accent-jade);
+}
+.danger {
+  border-left: var(--border-width-base) solid var(--accent-cinnabar);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-ink);
+  font-size: var(--font-size-sm);
+  text-align: left;
+}
+.head:hover {
+  background: var(--bg-silk);
+}
+.status {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+}
+.name {
+  flex-shrink: 0;
+  color: var(--accent-lapis);
+  font-weight: 600;
+}
+.argsBrief {
+  flex: 1;
+  color: var(--text-ink-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-ink-light);
+}
+
+.detail {
+  padding: var(--space-2) var(--space-3);
+  border-top: var(--border-width-thin) solid var(--border-ancient);
+}
+.section {
+  margin-bottom: var(--space-2);
+}
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-ink-light);
+  margin-bottom: var(--space-1);
+}
+.pre {
+  margin: 0;
+  padding: var(--space-2);
+  background: var(--bg-paper);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-mono, monospace);
+  font-size: var(--font-size-xs);
+  color: var(--text-ink);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow: auto;
+}

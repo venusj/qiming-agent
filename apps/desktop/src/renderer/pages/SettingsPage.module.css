@@ -50,3 +50,10 @@
   color: var(--text-ink-light);
   line-height: var(--line-height-relaxed);
 }
+
+.hint {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-ink-light);
+  font-style: italic;
+}

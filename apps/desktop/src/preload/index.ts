@@ -66,6 +66,7 @@ const api: ExposedApi = {
     list: () => ipcRenderer.invoke(IPC.TOOLS_LIST),
     setWorkspace: (path) => ipcRenderer.invoke(IPC.TOOLS_SET_WORKSPACE, path),
     getWorkspace: () => ipcRenderer.invoke(IPC.TOOLS_GET_WORKSPACE),
+    pickWorkspace: () => ipcRenderer.invoke(IPC.TOOLS_PICK_WORKSPACE),
     // 跨任务修正：透传整个 ApprovalRequest（含 sessionId/tool），
     // Main 侧 respond 需要 sessionId+tool 来登记 sessionAllowed。
     respondApproval: (req, decision) =>

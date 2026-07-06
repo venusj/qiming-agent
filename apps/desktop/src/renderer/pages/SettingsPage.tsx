@@ -21,10 +21,13 @@ export function SettingsPage() {
   const [confirmDelete, setConfirmDelete] = useState<ProviderConfig | null>(
     null,
   );
+  // P2.7：工作目录（案牍之所）。挂载时拉取已存值，选目录后即时回写。
+  const [workspace, setWorkspace] = useState('');
 
   const reload = async () => setProviders(await api.provider.list());
   useEffect(() => {
     void reload();
+    void api.tools.getWorkspace().then(setWorkspace);
   }, []);
 
   const closeFormDialog = () => {
@@ -99,6 +102,34 @@ export function SettingsPage() {
       >
         确定删除「{confirmDelete?.name}」？该操作会同时清除已保存的 APIKey。
       </Dialog>
+
+      {/* P2.7：工作目录 · 案牍之所 —— 工具调用相对路径解析的根 */}
+      <Card className={styles.card}>
+        <div className={styles.cardHead}>
+          <span className={styles.name}>工作目录 · 案牍之所</span>
+        </div>
+        <div className={styles.meta}>
+          <div>当前：{workspace || '（未设置）'}</div>
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="primary"
+              onClick={async () => {
+                // 选目录经 IPC 由 Main 的 dialog 处理（TOOLS_PICK_WORKSPACE）
+                const path = await api.tools.pickWorkspace();
+                if (path) {
+                  await api.tools.setWorkspace(path);
+                  setWorkspace(path);
+                }
+              }}
+            >
+              选择目录
+            </Button>
+          </div>
+          <div className={styles.hint}>
+            工作目录用于解析工具调用中的相对路径。仅本地可见，不上传。
+          </div>
+        </div>
+      </Card>
 
       <MemoryPanel />
     </div>

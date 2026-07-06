@@ -5,8 +5,25 @@ import type {
   ProviderConfig,
   ApprovalRequest,
   ApprovalDecision,
+  ToolCallEvent,
+  ToolResultEvent,
 } from '@qiming/shared';
 import { api } from '../ipc/client';
+
+/**
+ * P2.7：消息流中的工具调用条目。
+ * - status='pending'：onToolCall 收到，等待 onToolResult 配对。
+ * - status='ok'/'fail'：onToolResult 到达后由 callId 配对写入。
+ */
+export interface ToolCallState {
+  callId: string;
+  tool: ToolCallEvent['tool'];
+  args: Record<string, unknown>;
+  /** 结果未到达 = 'pending'；ok=true = 'ok'；ok=false = 'fail' */
+  status: 'pending' | 'ok' | 'fail';
+  result?: unknown;
+  createdAt: number;
+}
 
 /**
  * 聊天页全局状态（zustand）。
@@ -32,6 +49,8 @@ interface ChatState {
   /** P2.6：当前待审批请求（null=无）。一次只展示一个；队列后续请求排队等当前解决。 */
   pendingApproval: ApprovalRequest | null;
   respondApproval: (decision: ApprovalDecision) => Promise<void>;
+  /** P2.7：工具调用流（按到达顺序，含调用与配对的结果） */
+  toolCalls: ToolCallState[];
   loadSessions: () => Promise<void>;
   loadProviders: () => Promise<void>;
   selectSession: (id: string) => Promise<void>;
@@ -88,6 +107,29 @@ function ensureStreamListeners(
       set({ pendingApproval: req });
     }
   });
+
+  // P2.7：工具调用流。onToolCall 追加 pending 条目；onToolResult 按 callId 配对写结果。
+  api.tools.onToolCall((p: ToolCallEvent) => {
+    if (p.sessionId !== get().activeSessionId) return;
+    const next: ToolCallState = {
+      callId: p.callId,
+      tool: p.tool,
+      args: p.args,
+      status: 'pending',
+      createdAt: Date.now(),
+    };
+    set({ toolCalls: [...get().toolCalls, next] });
+  });
+  api.tools.onToolResult((p: ToolResultEvent) => {
+    if (p.sessionId !== get().activeSessionId) return;
+    set({
+      toolCalls: get().toolCalls.map((tc) =>
+        tc.callId === p.callId
+          ? { ...tc, status: p.ok ? 'ok' : 'fail', result: p.result }
+          : tc,
+      ),
+    });
+  });
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -99,6 +141,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   providers: [],
   usage: null,
   pendingApproval: null,
+  toolCalls: [],
 
   loadSessions: async () => set({ sessions: await api.session.list() }),
   loadProviders: async () => set({ providers: await api.provider.list() }),
@@ -111,6 +154,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       usage: null,
       // P2.6：切换会话时清掉残留审批（会话 A 的待审批不应阻塞会话 B 的视图）。
       pendingApproval: null,
+      // P2.7：切换会话时清空工具调用流（旧会话的工具条目不应混入新会话视图）。
+      toolCalls: [],
     });
   },
 
@@ -123,6 +168,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       streamBuffer: '',
       usage: null,
       pendingApproval: null,
+      toolCalls: [],
     });
   },
 

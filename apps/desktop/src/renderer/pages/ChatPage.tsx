@@ -9,6 +9,7 @@ import { useChatStore } from '../stores/chat';
 import { MessageBubble } from '../components/MessageBubble';
 import { ContextMeter } from '../components/ContextMeter';
 import { ApprovalDialog } from '../components/ApprovalDialog';
+import { ToolCallView } from '../components/ToolCallView';
 import { Button, Textarea, Dropdown, InkLoading } from '@qiming/ui';
 import styles from './ChatPage.module.css';
 
@@ -134,6 +135,10 @@ export function ChatPage() {
         <div className={styles.messages} ref={scrollRef}>
           {s.messages.map((m) => (
             <MessageBubble key={m.id} message={m} />
+          ))}
+          {/* P2.7：工具调用流（按时间序，仅当前会话）—— 折叠卡片穿插在消息流中 */}
+          {s.toolCalls.map((tc) => (
+            <ToolCallView key={tc.callId} tc={tc} />
           ))}
           {/* 流式进行中：实时渲染已累积的 buffer（文本逐字出现）+ 研墨 loading */}
           {s.streaming && (

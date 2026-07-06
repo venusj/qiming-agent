@@ -44,6 +44,7 @@ export const IPC = {
   TOOLS_LIST: 'tools:list',
   TOOLS_SET_WORKSPACE: 'tools:set_workspace',
   TOOLS_GET_WORKSPACE: 'tools:get_workspace',
+  TOOLS_PICK_WORKSPACE: 'tools:pick_workspace',
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_TOGGLE_MAXIMIZE: 'window:toggleMaximize',
   WINDOW_CLOSE: 'window:close',
@@ -128,6 +129,8 @@ export interface ExposedApi {
     list(): Promise<ToolInfo[]>;
     setWorkspace(path: string): Promise<void>;
     getWorkspace(): Promise<string>;
+    /** P2.7：弹出原生目录选择器，返回所选路径或 null（取消）。 */
+    pickWorkspace(): Promise<string | null>;
     onApprovalRequest(cb: (req: ApprovalRequest) => void): () => void;
     respondApproval(req: ApprovalRequest, decision: ApprovalDecision): Promise<void>;
     onToolCall(cb: (p: ToolCallEvent) => void): () => void;
