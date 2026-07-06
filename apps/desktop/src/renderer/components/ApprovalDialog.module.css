@@ -54,7 +54,7 @@
 
 .body {
   color: var(--text-ink);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
 }
 .summary {
   display: flex;
