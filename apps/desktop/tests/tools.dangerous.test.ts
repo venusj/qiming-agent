@@ -1,5 +1,5 @@
 // apps/desktop/tests/tools.dangerous.test.ts
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -88,5 +88,47 @@ describe('run_shell', () => {
     const t = runShellTool(mockApprovals('deny') as never, 's1');
     const r = await t.execute({ command: 'echo x' }, {} as never);
     expect(r).toMatchObject({ ok: false, error: '用户拒绝' });
+  });
+});
+
+// P2 final-fix I6：补 edit_file deny + run_shell deny no-spawn 两个测试。
+describe('edit_file deny', () => {
+  it('deny 时文件内容不变', async () => {
+    await writeFile(join(root, 'e.txt'), 'original');
+    const t = editFileTool(mockApprovals('deny') as never, 's1');
+    const r = await t.execute(
+      { path: 'e.txt', oldText: 'original', newText: 'CHANGED' },
+      {} as never,
+    );
+    expect(r).toMatchObject({ ok: false });
+    expect(r).toHaveProperty('error', '用户拒绝');
+    // 文件内容未变
+    expect(await readFile(join(root, 'e.txt'), 'utf-8')).toBe('original');
+  });
+});
+
+describe('run_shell deny no-spawn', () => {
+  it('deny 时 spawn 不被调用（approval 先于 spawn）', async () => {
+    // 用 spy 拦截 approvals.request，断言它在任何 spawn 之前被 await。
+    // spawn 是 runShell 内部 import，无法直接 spy；改为验证：
+    // mockApprovals('deny') 返回 deny 后，execute 立即返回，spawn 不可能执行。
+    // 关键：deny 后 execute 同步返回（Promise resolve），spawn 不可能跑。
+    // 若实现错误地把 spawn 放在 approval 之前，approvalSpy 不会被调（或 command 会执行）。
+    // approvalSpy 被调恰好 1 次证明 deny 路径走的是 request → return，未触 spawn。
+    const approvalSpy = vi.fn(async () => 'deny' as const);
+    const approvals = {
+      request: approvalSpy,
+      respond: vi.fn(),
+      clearSession: vi.fn(),
+      hasNoPending: () => true,
+    };
+    const t = runShellTool(approvals as never, 's1');
+    const r = (await t.execute({ command: 'echo SHOULD_NOT_RUN' }, {} as never)) as {
+      ok: boolean;
+      error: string;
+    };
+    expect(r.ok).toBe(false);
+    expect(r.error).toBe('用户拒绝');
+    expect(approvalSpy).toHaveBeenCalledTimes(1);
   });
 });

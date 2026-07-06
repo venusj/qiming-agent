@@ -93,9 +93,12 @@ function ensureStreamListeners(
   api.chat.onError((p) => {
     if (p.sessionId === get().activeSessionId) {
       // 错误：把错误信息以系统口吻追加进 buffer 便于用户感知，并结束 streaming。
+      // P2 final-fix I5：同时清掉残留 pendingApproval——流已终止，
+      // ApprovalDialog 不应继续指向一个被废弃的审批请求。
       set({
         streaming: false,
         streamBuffer: get().streamBuffer + `\n\n> 〔${p.message}〕`,
+        pendingApproval: null,
       });
     }
   });
@@ -205,7 +208,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   stop: async () => {
     const id = get().activeSessionId;
     if (id) await api.chat.stop(id);
-    set({ streaming: false });
+    // P2 final-fix I5：用户中断时清掉 pendingApproval——
+    // 流已停止，ApprovalDialog 不应继续指向被废弃的请求。
+    set({ streaming: false, pendingApproval: null });
   },
 
   respondApproval: async (decision) => {

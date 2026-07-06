@@ -27,6 +27,9 @@
   --font-family-cn: 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
   --font-family-en: 'Cormorant Garamond', 'EB Garamond', serif;
   --font-family-ui: var(--font-family-cn);
+  /* P2 final-fix M1：等宽字体栈，供 ApprovalDialog/ToolCallView 显示代码/命令/路径。
+     组件侧保留 var(--font-family-mono, monospace) 的 fallback（防御性，无副作用）。 */
+  --font-family-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
 
   /* ===== 字号（16px 基准） ===== */
   --font-size-xs: 12px;

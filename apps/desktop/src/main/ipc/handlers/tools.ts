@@ -28,6 +28,12 @@ export function registerToolHandlers() {
 
   ipcMain.handle(IPC.TOOLS_LIST, () => TOOL_INFOS);
 
+  // P2 final-fix I2（文档化不变式）：此处返回的是 paths 模块的内存缓存，而非直接读
+  // settings 表。双写一致性依赖一个约定——所有 workspace 写入者必须成对调用：
+  // settings.set(WORKSPACE_KEY, p) + setWorkspaceRoot(p)。当前两处写入者：
+  //   1) 本文件的 TOOLS_SET_WORKSPACE handler（上行 setWorkspaceRoot + settings.set）
+  //   2) main/index.ts 首次启动目录选择（同样成对调用）
+  // 新增写入者时务必保持这一配对，否则 GET 返回值会与持久化值漂移。
   ipcMain.handle(IPC.TOOLS_GET_WORKSPACE, () => getWorkspaceRoot());
 
   ipcMain.handle(IPC.TOOLS_SET_WORKSPACE, (_e, path: string) => {

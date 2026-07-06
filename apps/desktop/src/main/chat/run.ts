@@ -147,15 +147,22 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
             args: p.args as Record<string, unknown>,
           });
           break;
-        case 'tool-result':
+        case 'tool-result': {
+          // P2 final-fix I3：危险工具 deny/edit-no-match 返回 { ok:false, error }（普通对象，
+          // 非 Error 实例）。仅判 `instanceof Error` 会把这些标成成功（UI 显示绿勾——UX 谎言）。
+          // 同时检查结果自身的 ok 字段：readonly 工具返回数组/对象（无 ok）→ undefined!==false → true；
+          // {ok:false} → false；{ok:true} → true。
+          const resultObj = p.result as { ok?: unknown };
+          const ok = !(p.result instanceof Error) && resultObj?.ok !== false;
           win?.webContents.send(IPC.CHAT_TOOL_RESULT, {
             sessionId,
             callId: p.toolCallId,
             tool: p.toolName,
             result: p.result,
-            ok: !(p.result instanceof Error),
+            ok,
           });
           break;
+        }
         case 'error':
           console.error('[p2] streamText error', p.error);
           break;
@@ -165,14 +172,30 @@ export async function runTurn(sessionId: string, userMessage: string): Promise<v
       }
     }
 
+    // P2 final-fix I4：检测 maxSteps 上限——SDK 在到顶时 finishReason='tool-calls'
+    // （还想继续但被截断）。finishReason 是 Promise<FinishReason>（dist/index.d.ts:2655）。
+    const finishReason = await result.finishReason;
+    const hitCeiling = finishReason === 'tool-calls';
+    if (hitCeiling) {
+      // 上限通知先以 delta 推送，让流式 UI 立即看到，再随 CHAT_DONE 收尾。
+      win?.webContents.send(IPC.CHAT_DELTA, {
+        sessionId,
+        delta: '\n\n> 〔已达工具调用上限（25 步），本轮已终止。可在新对话继续。〕',
+      });
+    }
+
     const finalText = await result.text;
+    // hitCeiling 时在落库内容末尾追加同样提示（与上面 delta 一致）。
+    const displayText = hitCeiling
+      ? `${finalText}\n\n> 〔已达工具调用上限（25 步），本轮已终止。可在新对话继续。〕`
+      : finalText;
     // result.usage 是 Promise<LanguageModelUsage>（ai@4.x，见 dist/index.d.ts:2636）
     const usage = await result.usage;
     const completionTokens = usage?.completionTokens ?? null;
     const saved: Message = sessions().appendMessage(
       sessionId,
       'assistant',
-      finalText,
+      displayText,
       completionTokens,
     );
     // usedTokens = 当前下发上下文（摘要 + recent）的 token 估算，供 UI 进度条
