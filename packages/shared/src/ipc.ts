@@ -1,6 +1,13 @@
 import type { ProviderConfig, ProviderInput } from './provider.js';
 import type { Session, Message, SessionBinding } from './session.js';
 import type { Memory } from './memory.js';
+import type {
+  ToolInfo,
+  ApprovalRequest,
+  ApprovalDecision,
+  ToolCallEvent,
+  ToolResultEvent,
+} from './tool.js';
 
 /** IPC 通道名常量，Main/Preload/Renderer 三处共用，避免拼写漂移 */
 export const IPC = {
@@ -29,6 +36,14 @@ export const IPC = {
   MEMORY_UPDATE: 'memory:update',
   MEMORY_DELETE: 'memory:delete',
   MEMORY_REEMBED: 'memory:reembed',
+  // P2：工具系统 + 审批通道
+  CHAT_TOOL_CALL: 'chat:tool_call',
+  CHAT_TOOL_RESULT: 'chat:tool_result',
+  CHAT_APPROVAL_REQUEST: 'chat:approval_request',
+  CHAT_APPROVAL_RESPOND: 'chat:approval_respond',
+  TOOLS_LIST: 'tools:list',
+  TOOLS_SET_WORKSPACE: 'tools:set_workspace',
+  TOOLS_GET_WORKSPACE: 'tools:get_workspace',
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_TOGGLE_MAXIMIZE: 'window:toggleMaximize',
   WINDOW_CLOSE: 'window:close',
@@ -103,5 +118,19 @@ export interface ExposedApi {
     ): Promise<Memory>;
     delete(id: string): Promise<void>;
     reembed(providerId: string): Promise<{ updated: number }>;
+  };
+  /** P2：工具系统 + 审批。
+   *  - list/getWorkspace/setWorkspace：工具元信息与工作目录管理。
+   *  - onApprovalRequest：危险工具执行前 Main 推过来的审批请求；
+   *    Renderer 必须用 respondApproval 回传决策，否则工具会一直挂起。
+   *  - onToolCall/onToolResult：消息流中的工具调用可视化事件。 */
+  tools: {
+    list(): Promise<ToolInfo[]>;
+    setWorkspace(path: string): Promise<void>;
+    getWorkspace(): Promise<string>;
+    onApprovalRequest(cb: (req: ApprovalRequest) => void): () => void;
+    respondApproval(id: string, decision: ApprovalDecision): Promise<void>;
+    onToolCall(cb: (p: ToolCallEvent) => void): () => void;
+    onToolResult(cb: (p: ToolResultEvent) => void): () => void;
   };
 }
