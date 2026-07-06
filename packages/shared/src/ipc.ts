@@ -129,7 +129,7 @@ export interface ExposedApi {
     setWorkspace(path: string): Promise<void>;
     getWorkspace(): Promise<string>;
     onApprovalRequest(cb: (req: ApprovalRequest) => void): () => void;
-    respondApproval(id: string, decision: ApprovalDecision): Promise<void>;
+    respondApproval(req: ApprovalRequest, decision: ApprovalDecision): Promise<void>;
     onToolCall(cb: (p: ToolCallEvent) => void): () => void;
     onToolResult(cb: (p: ToolResultEvent) => void): () => void;
   };

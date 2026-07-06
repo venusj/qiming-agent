@@ -1,7 +1,6 @@
 // apps/desktop/src/main/tools/registry.ts
 import type { Tool } from 'ai';
-// 占位（P2.3 之后替换为真实 ApprovalQueue，从 '../approval/queue' 导入）
-type ApprovalQueue = unknown;
+import type { ApprovalQueue } from '../approval/queue';
 import { readFileTool } from './builtins/readFile';
 import { listDirectoryTool } from './builtins/listDirectory';
 import { globTool } from './builtins/glob';
@@ -14,8 +13,8 @@ import { grepTool } from './builtins/grep';
  *    以便 execute 内部 await 审批。P2.4 之后补齐。
  */
 export function buildToolRegistry(
-  _approvals: ApprovalQueue,
-  _sessionId: string,
+  approvals: ApprovalQueue,
+  sessionId: string,
 ): Record<string, Tool> {
   return {
     read_file: readFileTool,

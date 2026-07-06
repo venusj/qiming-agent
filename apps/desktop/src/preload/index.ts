@@ -62,6 +62,36 @@ const api: ExposedApi = {
     delete: (id) => ipcRenderer.invoke(IPC.MEMORY_DELETE, id),
     reembed: (providerId) => ipcRenderer.invoke(IPC.MEMORY_REEMBED, providerId),
   },
+  tools: {
+    list: () => ipcRenderer.invoke(IPC.TOOLS_LIST),
+    setWorkspace: (path) => ipcRenderer.invoke(IPC.TOOLS_SET_WORKSPACE, path),
+    getWorkspace: () => ipcRenderer.invoke(IPC.TOOLS_GET_WORKSPACE),
+    // 跨任务修正：透传整个 ApprovalRequest（含 sessionId/tool），
+    // Main 侧 respond 需要 sessionId+tool 来登记 sessionAllowed。
+    respondApproval: (req, decision) =>
+      ipcRenderer.invoke(IPC.CHAT_APPROVAL_RESPOND, req, decision),
+    onApprovalRequest: (cb) => {
+      const h = (_e: IpcRendererEvent, p: Parameters<typeof cb>[0]) => cb(p);
+      ipcRenderer.on(IPC.CHAT_APPROVAL_REQUEST, h);
+      return () => {
+        ipcRenderer.off(IPC.CHAT_APPROVAL_REQUEST, h);
+      };
+    },
+    onToolCall: (cb) => {
+      const h = (_e: IpcRendererEvent, p: Parameters<typeof cb>[0]) => cb(p);
+      ipcRenderer.on(IPC.CHAT_TOOL_CALL, h);
+      return () => {
+        ipcRenderer.off(IPC.CHAT_TOOL_CALL, h);
+      };
+    },
+    onToolResult: (cb) => {
+      const h = (_e: IpcRendererEvent, p: Parameters<typeof cb>[0]) => cb(p);
+      ipcRenderer.on(IPC.CHAT_TOOL_RESULT, h);
+      return () => {
+        ipcRenderer.off(IPC.CHAT_TOOL_RESULT, h);
+      };
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld('qiming', api);
