@@ -7,10 +7,10 @@ function freshDb(): Database.Database {
 }
 
 describe('migration', () => {
-  it('空 DB 跑迁移后 version=3，schema_version 有记录，含 memories 表', () => {
+  it('空 DB 跑迁移后 version=4，schema_version 有记录，含 memories + settings 表', () => {
     const db = freshDb();
     runMigrations(db);
-    expect(getAppliedVersion(db)).toBe(3);
+    expect(getAppliedVersion(db)).toBe(4);
     // P0 表都在
     const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as {
       name: string;
@@ -20,6 +20,7 @@ describe('migration', () => {
     expect(names).toContain('sessions');
     expect(names).toContain('messages');
     expect(names).toContain('memories');
+    expect(names).toContain('settings');
     expect(names).toContain('schema_version');
   });
 
@@ -51,7 +52,7 @@ describe('migration', () => {
     const db = freshDb();
     runMigrations(db);
     runMigrations(db); // 再跑一次（kind/embedding_model 列已存在，after 钩子应安全跳过）
-    expect(getAppliedVersion(db)).toBe(3);
+    expect(getAppliedVersion(db)).toBe(4);
   });
 
   it('已含 P0 表的 DB 升级：迁移加 memories 表 + kind 列 + embedding 列，不丢数据', () => {
@@ -69,8 +70,8 @@ describe('migration', () => {
     db.prepare(
       "INSERT INTO messages (id, session_id, role, content, tokens, created_at) VALUES ('m1','s1','user','hi',NULL,1)",
     ).run();
-    runMigrations(db); // version 1（IF NOT EXISTS，不破坏现有表）+ version 2（加 memories + ALTER kind）+ version 3（加 embedding 列）
-    expect(getAppliedVersion(db)).toBe(3);
+    runMigrations(db); // version 1（IF NOT EXISTS，不破坏现有表）+ version 2（加 memories + ALTER kind）+ version 3（加 embedding 列）+ version 4（加 settings 表）
+    expect(getAppliedVersion(db)).toBe(4);
     // 老数据还在
     const count = db.prepare('SELECT COUNT(*) as c FROM messages').get() as { c: number };
     expect(count.c).toBe(1);
@@ -86,6 +87,7 @@ describe('migration', () => {
       name: string;
     }[];
     expect(tables.map((t) => t.name)).toContain('memories');
+    expect(tables.map((t) => t.name)).toContain('settings');
   });
 });
 
