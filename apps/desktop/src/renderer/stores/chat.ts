@@ -21,6 +21,8 @@ interface ChatState {
   streaming: boolean;
   streamBuffer: string;
   providers: ProviderConfig[];
+  /** P1.3 新增：最近一轮对话的上下文用量（null=尚未收到 done） */
+  usage: { contextWindow: number; usedTokens: number } | null;
   loadSessions: () => Promise<void>;
   loadProviders: () => Promise<void>;
   selectSession: (id: string) => Promise<void>;
@@ -55,6 +57,7 @@ function ensureStreamListeners(
         streaming: false,
         streamBuffer: '',
         messages: await api.session.messages(p.sessionId),
+        usage: p.usage ?? null,
       });
     }
   });
@@ -77,6 +80,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streaming: false,
   streamBuffer: '',
   providers: [],
+  usage: null,
 
   loadSessions: async () => set({ sessions: await api.session.list() }),
   loadProviders: async () => set({ providers: await api.provider.list() }),
@@ -86,6 +90,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       activeSessionId: id,
       messages: await api.session.messages(id),
       streamBuffer: '',
+      usage: null,
     });
   },
 
@@ -96,6 +101,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       activeSessionId: s.id,
       messages: [],
       streamBuffer: '',
+      usage: null,
     });
   },
 

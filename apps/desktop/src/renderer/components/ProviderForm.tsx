@@ -35,6 +35,13 @@ export function ProviderForm({
   const [enabledModelsText, setEnabledModelsText] = useState(
     (initial?.enabledModels ?? []).join(', '),
   );
+  // P1.8：embedding 模型 + 上下文窗口。留空则该 provider 不支持记忆功能。
+  const [embeddingModel, setEmbeddingModel] = useState(
+    initial?.embeddingModel ?? '',
+  );
+  const [contextWindowText, setContextWindowText] = useState(
+    initial?.contextWindow != null ? String(initial.contextWindow) : '',
+  );
   const [test, setTest] = useState<TestResult | null>(null);
   const [testing, setTesting] = useState(false);
   // runTest 内部保存时用于避免触发 onSaved 关闭弹窗；保存后记录的 providerId 供测试使用。
@@ -47,20 +54,29 @@ export function ProviderForm({
     setBaseUrl(t.baseUrl ?? '');
     setDefaultModel(t.defaultModel);
     setEnabledModelsText(t.enabledModels.join(', '));
+    // P1.8：模板同步填 embeddingModel / contextWindow 推荐值
+    setEmbeddingModel(t.embeddingModel ?? '');
+    setContextWindowText(t.contextWindow != null ? String(t.contextWindow) : '');
   };
 
   /** 组装 ProviderInput。apiKeyRef：编辑态沿用旧的，新增态生成 provider:<uuid>。 */
-  const buildInput = (): ProviderInput => ({
-    name,
-    kind,
-    baseUrl: kind === 'openai-compatible' ? baseUrl : undefined,
-    apiKeyRef: initial?.apiKeyRef ?? `provider:${crypto.randomUUID()}`,
-    defaultModel,
-    enabledModels: enabledModelsText
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-  });
+  const buildInput = (): ProviderInput => {
+    const cw = contextWindowText.trim() === '' ? NaN : Number(contextWindowText);
+    return {
+      name,
+      kind,
+      baseUrl: kind === 'openai-compatible' ? baseUrl : undefined,
+      apiKeyRef: initial?.apiKeyRef ?? `provider:${crypto.randomUUID()}`,
+      defaultModel,
+      enabledModels: enabledModelsText
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      // 留空 = 不配置（该 provider 不支持记忆 / 用默认 8k 预算）
+      embeddingModel: embeddingModel.trim() || undefined,
+      contextWindow: Number.isFinite(cw) ? cw : undefined,
+    };
+  };
 
   /** 保存（create 或 update）。apiKey 为空时不传，保留旧 key。 */
   const save = async (opts?: { silent?: boolean }) => {
@@ -168,6 +184,23 @@ export function ProviderForm({
         value={enabledModelsText}
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
           setEnabledModelsText(e.target.value)
+        }
+      />
+
+      <Input
+        placeholder="embedding 模型（留空则不支持记忆，如 text-embedding-3-small）"
+        value={embeddingModel}
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          setEmbeddingModel(e.target.value)
+        }
+      />
+
+      <Input
+        type="number"
+        placeholder="上下文窗口（留空默认 8000，如 128000）"
+        value={contextWindowText}
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          setContextWindowText(e.target.value)
         }
       />
 

@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS providers (
   default_model TEXT NOT NULL,
   enabled_models TEXT,
   headers TEXT,
+  -- P1.8：embedding 模型名（无值则该 provider 不支持记忆）
+  embedding_model TEXT,
+  -- P1.8：上下文窗口大小（用于压缩预算规划）
+  context_window INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );
@@ -29,3 +33,15 @@ CREATE TABLE IF NOT EXISTS messages (
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, created_at);
+
+-- P1: 长期记忆（新建 DB 的 version 1 即含此表；老 DB 经 version 2 迁移获得）
+CREATE TABLE IF NOT EXISTS memories (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  embedding TEXT NOT NULL,
+  source TEXT,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_memories_enabled ON memories(enabled);

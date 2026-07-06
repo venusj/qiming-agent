@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { useChatStore } from '../stores/chat';
 import { MessageBubble } from '../components/MessageBubble';
+import { ContextMeter } from '../components/ContextMeter';
 import { Button, Textarea, Dropdown, InkLoading } from '@qiming/ui';
 import styles from './ChatPage.module.css';
 
@@ -120,6 +121,12 @@ export function ChatPage() {
               </option>
             ))}
           </Dropdown>
+          {s.usage && (
+            <ContextMeter
+              used={s.usage.usedTokens}
+              total={s.usage.contextWindow}
+            />
+          )}
         </div>
 
         {/* 消息流 */}
@@ -138,6 +145,7 @@ export function ChatPage() {
                     role: 'assistant',
                     content: s.streamBuffer,
                     tokens: null,
+                    kind: 'message',
                     createdAt: 0,
                   }}
                 />
@@ -156,6 +164,7 @@ export function ChatPage() {
                 role: 'assistant',
                 content: s.streamBuffer,
                 tokens: null,
+                kind: 'message',
                 createdAt: 0,
               }}
             />

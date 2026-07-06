@@ -1,11 +1,11 @@
 import Database from 'better-sqlite3';
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { app } from 'electron';
+import { runMigrations } from './migration';
 
 let dbInstance: Database.Database | null = null;
 
-/** Main 进程单例 db（懒加载）。读取 schema.sql 并建表/索引。 */
+/** Main 进程单例 db（懒加载）。启动时跑版本化迁移建表/索引。 */
 export function getDb(): Database.Database {
   if (dbInstance) return dbInstance;
   const dir = app.getPath('userData'); // %APPDATA%/qiming-agent 或 ~/Library/Application Support/qiming-agent
@@ -13,16 +13,14 @@ export function getDb(): Database.Database {
   dbInstance = new Database(dbPath);
   dbInstance.pragma('journal_mode = WAL');
   dbInstance.pragma('foreign_keys = ON');
-  const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
-  dbInstance.exec(schema);
+  runMigrations(dbInstance); // 替代原 db.exec(schema)
   return dbInstance;
 }
 
-/** 测试用：内存库工厂。schema 路径相对本文件解析。 */
+/** 测试用：内存库工厂。迁移由 runMigrations 完成（schema.sql 在 migration.ts 内读取）。 */
 export function createMemoryDb(): Database.Database {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
-  const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
-  db.exec(schema);
+  runMigrations(db); // 替代原 db.exec(schema)
   return db;
 }

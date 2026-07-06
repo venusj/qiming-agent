@@ -1,5 +1,6 @@
 import type { ProviderConfig, ProviderInput } from './provider.js';
 import type { Session, Message, SessionBinding } from './session.js';
+import type { Memory } from './memory.js';
 
 /** IPC 通道名常量，Main/Preload/Renderer 三处共用，避免拼写漂移 */
 export const IPC = {
@@ -20,6 +21,14 @@ export const IPC = {
   CHAT_DELTA: 'chat:delta',
   CHAT_DONE: 'chat:done',
   CHAT_ERROR: 'chat:error',
+  // P1.8：长期记忆管理通道。
+  //  add/update/reembed 需用某个 provider 的 embedding 模型生成向量，
+  //  由调用方（renderer）传入 providerId，handler 内部 providerStore.get 取配置再 embed。
+  MEMORY_LIST: 'memory:list',
+  MEMORY_ADD: 'memory:add',
+  MEMORY_UPDATE: 'memory:update',
+  MEMORY_DELETE: 'memory:delete',
+  MEMORY_REEMBED: 'memory:reembed',
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_TOGGLE_MAXIMIZE: 'window:toggleMaximize',
   WINDOW_CLOSE: 'window:close',
@@ -43,6 +52,8 @@ export interface ChatDeltaPayload {
 export interface ChatDonePayload {
   sessionId: string;
   message: Message;
+  /** P1.3 新增：上下文用量，供 UI token 进度条 */
+  usage?: { contextWindow: number; usedTokens: number };
 }
 
 export interface ChatErrorPayload {
@@ -78,5 +89,19 @@ export interface ExposedApi {
     minimize(): Promise<void>;
     toggleMaximize(): Promise<void>;
     close(): Promise<void>;
+  };
+  /** 长期记忆管理（P1.8）。
+   *  add/update/reembed 需指定一个已配置 embeddingModel 的 provider 来生成向量；
+   *  providerId 无效或该 provider 无 embeddingModel 时抛友好错误。 */
+  memory: {
+    list(): Promise<Memory[]>;
+    add(content: string, providerId: string): Promise<Memory>;
+    update(
+      id: string,
+      input: { content?: string; enabled?: boolean },
+      providerId?: string,
+    ): Promise<Memory>;
+    delete(id: string): Promise<void>;
+    reembed(providerId: string): Promise<{ updated: number }>;
   };
 }

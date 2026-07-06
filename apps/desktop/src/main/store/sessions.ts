@@ -1,5 +1,5 @@
 import type { Database } from 'better-sqlite3';
-import type { Session, Message, MessageRole, SessionBinding } from '@qiming/shared';
+import type { Session, Message, MessageRole, MessageKind, SessionBinding } from '@qiming/shared';
 import { randomUUID } from 'node:crypto';
 
 interface SessionRow {
@@ -18,6 +18,8 @@ interface MsgRow {
   content: string;
   tokens: number | null;
   created_at: number;
+  /** P1.1 新增列；老 P0 行可能无此列（迁移会加，但类型上标注可选） */
+  kind?: string;
 }
 
 function sRow(r: SessionRow): Session {
@@ -38,6 +40,8 @@ function mRow(r: MsgRow): Message {
     role: r.role as MessageRole,
     content: r.content,
     tokens: r.tokens,
+    // 老 P0 数据迁移后 kind 列已有 DEFAULT 'message'，但读取空值时兜底
+    kind: (r.kind ?? 'message') as MessageKind,
     createdAt: r.created_at,
   };
 }
@@ -90,14 +94,15 @@ export function createSessionStore(db: Database) {
       role: MessageRole,
       content: string,
       tokens: number | null = null,
+      kind: MessageKind = 'message',
     ): Message {
       const now = Date.now();
       const id = randomUUID();
       db.prepare(
-        'INSERT INTO messages (id,session_id,role,content,tokens,created_at) VALUES (?,?,?,?,?,?)',
-      ).run(id, sessionId, role, content, tokens, now);
+        'INSERT INTO messages (id,session_id,role,content,tokens,created_at,kind) VALUES (?,?,?,?,?,?,?)',
+      ).run(id, sessionId, role, content, tokens, now, kind);
       db.prepare('UPDATE sessions SET updated_at=? WHERE id=?').run(now, sessionId);
-      return { id, sessionId, role, content, tokens, createdAt: now };
+      return { id, sessionId, role, content, tokens, kind, createdAt: now };
     },
   };
 }

@@ -1,13 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
-import { readFileSync } from 'node:fs';
+import { runMigrations } from '../src/main/store/migration';
 import { createProviderStore } from '../src/main/store/providers';
 import { createSessionStore } from '../src/main/store/sessions';
 
 function memDb(): Database.Database {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
-  db.exec(readFileSync(new URL('../src/main/store/schema.sql', import.meta.url), 'utf-8'));
+  // P1.1：用 runMigrations 建表（含 memories + messages.kind 列）。
+  // 不再直接读 schema.sql —— 该文件不含 kind 列（kind 由 migration v2 的 after 钩子 ALTER 加）。
+  runMigrations(db);
   return db;
 }
 
@@ -51,6 +53,36 @@ describe('providerStore', () => {
     });
     store.delete(p.id);
     expect(store.list()).toHaveLength(0);
+  });
+  it('create/update 持久化 embeddingModel / contextWindow（P1.8）', () => {
+    const store = createProviderStore(db);
+    const p = store.create({
+      name: 'emb',
+      kind: 'openai',
+      apiKeyRef: 'r',
+      defaultModel: 'gpt-4o',
+      enabledModels: [],
+      embeddingModel: 'text-embedding-3-small',
+      contextWindow: 128000,
+    });
+    const got = store.get(p.id);
+    expect(got?.embeddingModel).toBe('text-embedding-3-small');
+    expect(got?.contextWindow).toBe(128000);
+    // update 只改 embeddingModel，contextWindow 不丢
+    store.update(p.id, { embeddingModel: 'text-embedding-3-large' });
+    const u = store.get(p.id);
+    expect(u?.embeddingModel).toBe('text-embedding-3-large');
+    expect(u?.contextWindow).toBe(128000);
+    // 未配置的 provider 取出为 undefined
+    const p2 = store.create({
+      name: 'no-emb',
+      kind: 'anthropic',
+      apiKeyRef: 'r2',
+      defaultModel: 'claude',
+      enabledModels: [],
+    });
+    expect(store.get(p2.id)?.embeddingModel).toBeUndefined();
+    expect(store.get(p2.id)?.contextWindow).toBeUndefined();
   });
 });
 
