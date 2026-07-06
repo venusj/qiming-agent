@@ -50,9 +50,7 @@ export const globTool: Tool<
     '按 glob 模式搜索文件路径（递归）。返回相对工作目录的匹配路径，上限 200 条。',
   parameters,
   async execute({ pattern, path }) {
-    const root = path ? resolvePath(path) : resolvePath('.') === '.' ? '' : resolvePath('.');
-    // 上面三元处理 '.' 在空 workspaceRoot 下；正常情况直接用 resolvePath(path ?? '.')
-    const searchRoot = path ? resolvePath(path) : (resolvePath('.') || process.cwd());
+    const searchRoot = path ? resolvePath(path) : resolvePath('.');
     const re = globToRe(pattern);
     const matches: string[] = [];
 
@@ -82,8 +80,6 @@ export const globTool: Tool<
     }
 
     await walk(searchRoot);
-    // 忽略 root 变量（仅为可读性保留），搜索以 searchRoot 为准
-    void root;
     return { matches, truncated: matches.length >= MAX_RESULTS };
   },
 };

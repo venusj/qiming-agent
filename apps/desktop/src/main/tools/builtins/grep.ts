@@ -38,7 +38,7 @@ export const grepTool: Tool<
   parameters,
   async execute({ pattern, path, glob, maxResults }) {
     const limit = maxResults ?? DEFAULT_MAX;
-    const root = path ? resolvePath(path) : resolvePath('.') || process.cwd();
+    const root = path ? resolvePath(path) : resolvePath('.');
     const re = new RegExp(pattern);
     const hits: GrepHit[] = [];
     const globSub = glob ?? '';
